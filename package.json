@@ -25,10 +25,27 @@
     "xbox",
     "xal"
   ],
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
   "bugs": {
     "url": "https://github.com/unknownskl/xal-node/issues"
   },
   "homepage": "https://github.com/unknownskl/xal-node#readme",
   "dependencies": {
-  }
+    "@mapbox/node-pre-gyp": "^1.0.10"
+  },
+  "binary": {
+    "module_name": "index",
+    "module_path": "./dist",
+    "host": "https://github.com/unknownskl/xal-node/releases/download/",
+    "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}-{libc}.tar.gz",
+    "remote_path": "{version}"
+}
 }
