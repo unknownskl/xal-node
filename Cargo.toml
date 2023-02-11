@@ -5,7 +5,7 @@ description = "NodeJS bridge for xal-rs"
 authors = ["UnknownSKL <info@jimkroon.nl>"]
 license = "MIT"
 edition = "2018"
-exclude = ["index.node"]
+exclude = ["dist/index.node"]
 
 [lib]
 crate-type = ["cdylib"]
@@ -13,6 +13,9 @@ crate-type = ["cdylib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+xal = { path = "./xal-rs" }
+tokio = { version = "1.24.2", features = ["macros"] }
+lazy_static = "1.4.0"
 
 [dependencies.neon]
 version = "0.10"

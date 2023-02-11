@@ -1,3 +1,4 @@
 [submodule "xal-rs"]
 	path = xal-rs
 	url = https://github.com/OpenXbox/xal-rs
+    branch = develop
