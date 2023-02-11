@@ -3,12 +3,11 @@
 # For docs, see github-actions in the IronCoreLabs/depot repo.
 
 name: TypeScript CI
-'on':
+on:
   push:
     branches:
     - main
-  pull_request: null
-  workflow_dispatch: null
+
 jobs:
   test:
     runs-on: ${{ matrix.system.os }}
@@ -34,7 +33,6 @@ jobs:
         - system:
             os:
             - macOS
-            - ARM64
             target: aarch64-apple-darwin
           node_version: 16
           rust_version: stable
@@ -42,7 +40,6 @@ jobs:
         - system:
             os:
             - macOS
-            - ARM64
             target: aarch64-apple-darwin
           node_version: 16
           rust_version: beta
@@ -50,7 +47,6 @@ jobs:
         - system:
             os:
             - macOS
-            - ARM64
             target: aarch64-apple-darwin
           node_version: 18
           rust_version: stable
@@ -58,7 +54,6 @@ jobs:
         - system:
             os:
             - macOS
-            - ARM64
             target: aarch64-apple-darwin
           node_version: 18
           rust_version: beta
