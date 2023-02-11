@@ -18,6 +18,8 @@ fn main(mut cx: ModuleContext) -> NeonResult<()> {
     cx.export_function("xalauthenticatorDoSisuAuthentication", RsXalAuthenticator::js_do_sisu_authentication)?;
     cx.export_function("xalauthenticatorDoSisuAuthorization", RsXalAuthenticator::js_do_sisu_authorization)?;
     cx.export_function("xalauthenticatorExchangeCodeForToken", RsXalAuthenticator::js_exchange_code_for_token)?;
+    cx.export_function("xalauthenticatorDoXstsAuthorization", RsXalAuthenticator::js_do_xsts_authorization)?;
+    cx.export_function("xalauthenticatorExchangeRefreshTokenForXcloudTransferToken", RsXalAuthenticator::js_exchange_refresh_token_for_xcloud_transfer_token)?;
 
     Ok(())
 }

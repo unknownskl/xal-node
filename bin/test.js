@@ -33,17 +33,24 @@ xalAuthenticator.get_device_token().then((device_token) => {
         xalAuthenticator.do_sisu_authorization(res4.sisu_session_id, res5.access_token, device_token.Token).then((res6) => {
           console.log('res6:', res6)
 
-          // xalAuthenticator.do_sisu_authorization(res4.sisu_session_id, res5.access_token, device_token.Token).then((res6) => {
-          //   console.log('res6:', res6)
+          xalAuthenticator.do_xsts_authorization(res6.DeviceToken, res6.TitleToken.Token, res6.UserToken.Token, "http://gssv.xboxlive.com/").then((res7) => {
+            console.log('res7:', res7)
+
+            xalAuthenticator.exchange_refresh_token_for_xcloud_transfer_token(res5.refresh_token).then((res8) => {
+              console.log('res8:', res8)
+    
+            }).catch((error8) => {
+              console.log('exchange_refresh_token_for_xcloud_transfer_token error:', error8)
+            })
   
-          // }).catch((error5) => {
-          //   console.log('do_sisu_authorization error:', error5)
-          // })
+          }).catch((error7) => {
+            console.log('do_xsts_authorization error:', error7)
+          })
 
 
 
-        }).catch((error5) => {
-          console.log('do_sisu_authorization error:', error5)
+        }).catch((error6) => {
+          console.log('do_sisu_authorization error:', error6)
         })
   
       }).catch((error5) => {

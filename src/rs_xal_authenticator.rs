@@ -4,6 +4,7 @@ use tokio::runtime::Runtime;
 use xal::{authenticator::XalAuthenticator};
 
 use oauth2::PkceCodeVerifier;
+use oauth2::RefreshToken;
 
 use neon::types::Finalize;
 use neon::types::Deferred;
@@ -263,6 +264,67 @@ impl RsXalAuthenticator {
                     .exchange_code_for_token(&code, local_code_verifier)
                     .await.unwrap();
                     
+                return serde_json::to_string(&auth_response)
+            });
+
+            deferred.settle_with(channel, move |mut cx| {
+
+                Ok(cx.string(result.unwrap()))
+            });
+        })
+        .into_rejection(&mut cx)?;
+
+        Ok(promise)
+    }
+
+
+    pub fn js_do_xsts_authorization(mut cx: FunctionContext) -> JsResult<JsPromise> {
+        let device_token = cx.argument::<JsString>(0)?.value(&mut cx);
+        let title_token = cx.argument::<JsString>(1)?.value(&mut cx);
+        let user_token = cx.argument::<JsString>(2)?.value(&mut cx);
+        let relaying_party = cx.argument::<JsString>(3)?.value(&mut cx);
+
+        let (deferred, promise) = cx.promise();
+        let xal = cx.this().downcast_or_throw::<JsBox<RsXalAuthenticator>, _>(&mut cx)?;
+
+        xal.send(deferred, move |handle, channel, deferred| {
+            let rt = Runtime::new().unwrap();
+            let result = rt.block_on(async {
+                let auth_response = handle
+                .do_xsts_authorization(
+                    device_token.as_str(),
+                    title_token.as_str(),
+                    user_token.as_str(),
+                    relaying_party.as_str(),
+                ).await.unwrap();
+                
+                return serde_json::to_string(&auth_response)
+            });
+
+            deferred.settle_with(channel, move |mut cx| {
+
+                Ok(cx.string(result.unwrap()))
+            });
+        })
+        .into_rejection(&mut cx)?;
+
+        Ok(promise)
+    }
+
+    pub fn js_exchange_refresh_token_for_xcloud_transfer_token(mut cx: FunctionContext) -> JsResult<JsPromise> {
+        let refresh_token = cx.argument::<JsString>(0)?.value(&mut cx);
+        let refresh_token_oauth = RefreshToken::new(refresh_token.to_owned());
+
+        let (deferred, promise) = cx.promise();
+        let xal = cx.this().downcast_or_throw::<JsBox<RsXalAuthenticator>, _>(&mut cx)?;
+
+        xal.send(deferred, move |handle, channel, deferred| {
+            let rt = Runtime::new().unwrap();
+            let result = rt.block_on(async {
+                let auth_response = handle
+                .exchange_refresh_token_for_xcloud_transfer_token(&refresh_token_oauth)
+                .await.unwrap();
+                
                 return serde_json::to_string(&auth_response)
             });
 
