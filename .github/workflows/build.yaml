@@ -113,6 +113,8 @@ jobs:
     - run: apk add build-base git python3 wget
     - run: echo RUSTFLAGS="-C target-feature=-crt-static" >> "${GITHUB_ENV}"
     - uses: actions/checkout@v3
+      with:
+        submodules: recursive
     - uses: actions-rs/toolchain@v1
       with:
         profile: minimal
