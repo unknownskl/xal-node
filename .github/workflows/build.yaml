@@ -19,7 +19,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest] #, windows-latest]
+        os: [macos-latest, ubuntu-latest, windows-latest]
 
     steps:
       - name: Checkout Git repository
@@ -31,6 +31,12 @@ jobs:
         uses: actions/setup-node@v3.6.0
         with:
           node-version: 18
+
+      - name: Setup OpenSSL
+        uses: crazy-max/ghaction-chocolatey@v2
+        with:
+          args: install openssl
+        if: runner.os == 'Windows'
 
       - name: Set up cargo cache
         uses: actions/cache@v3
