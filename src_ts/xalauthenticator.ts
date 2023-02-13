@@ -9,9 +9,7 @@ const {
     xalauthenticatorDoSisuAuthorization,
     xalauthenticatorDoXstsAuthorization,
     xalauthenticatorExchangeRefreshTokenForXcloudTransferToken,
-} = require("../dist/index.node");
-
-const moduleAll = require("../dist/index.node");
+} = require("../dist/xal-node.node");
 
 export default class XalAuthenticator {
     handler

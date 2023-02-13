@@ -1,4 +1,4 @@
-const { tokenstore_load, tokenstore_save } = require("../dist/index.node");
+const { tokenstore_load, tokenstore_save } = require("../dist/xal-node.node");
 
 export default class TokenStore {
 

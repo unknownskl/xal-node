@@ -4,7 +4,7 @@
   "description": "NodeJS bridge for xal-rs",
   "main": "dist/lib.js",
   "scripts": {
-    "build": "rm -rf dist/ && tsc && cargo-cp-artifact -nc dist/index.node -- cargo build --message-format=json-render-diagnostics",
+    "build": "rm -rf dist/ && tsc && cargo-cp-artifact -nc dist/xal-node.node -- cargo build --message-format=json-render-diagnostics",
     "build-debug": "npm run build --",
     "build-release": "npm run build -- --release",
     "install": "npm run build-release",
@@ -43,7 +43,7 @@
     "@mapbox/node-pre-gyp": "^1.0.10"
   },
   "binary": {
-    "module_name": "index",
+    "module_name": "xal-node",
     "module_path": "./dist",
     "host": "https://github.com/unknownskl/xal-node/releases/download/",
     "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}-{libc}.tar.gz",
