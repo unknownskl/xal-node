@@ -1,5 +1,6 @@
 const {
     xalauthenticatorNew,
+    xalauthenticatorClose,
     xalauthenticatorGetDeviceToken,
     xalauthenticatorGenerateRandomState,
     xalauthenticatorGetCodeChallenge,
@@ -18,6 +19,10 @@ export default class XalAuthenticator {
     constructor(){
 
         this.handler = new xalauthenticatorNew()
+    }
+
+    close() {
+        xalauthenticatorClose.call(this.handler)
     }
 
     get_code_challenge() {

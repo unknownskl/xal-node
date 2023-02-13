@@ -1,9 +1,11 @@
 const test = require('node:test')
-const assert = require('assert')
+const assert = require('node:assert').strict
 
-const XalLibrary = new require('../')
+const XalAuthenticator = new require('../').XalAuthenticator
+const xal = new XalAuthenticator()
 
-test('synchronous passing test', (t) => {
-    // This test passes because it does not throw an exception.
-    assert.strictEqual(1, 1);
+test('XalAuthenticator should have an handler returned', (t) => {
+    assert.notDeepStrictEqual(xal.handler, undefined, "xal.handler should not be undefined");
 });
+
+xal.close()
