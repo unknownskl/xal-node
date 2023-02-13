@@ -3,7 +3,7 @@ name: Build/release
 on:
   push:
     branches:
-      - main
+      - '*'
     tags:
       - v*
   pull_request:
@@ -32,10 +32,19 @@ jobs:
         with:
           node-version: 18
 
-      - name: Setup OpenSSL
-        uses: crazy-max/ghaction-chocolatey@v2
-        with:
-          args: install openssl
+      # - name: Setup OpenSSL
+      #   uses: crazy-max/ghaction-chocolatey@v2
+      #   with:
+      #     args: install openssl
+      #   if: runner.os == 'Windows'
+
+      # - uses: sfackler/actions/rustup@master
+      #   if: runner.os == 'Windows'
+      # - run: echo "::set-output name=version::$(rustc --version)"
+      #   id: rust-version
+      - run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
+        if: runner.os == 'Windows'
+      - run: vcpkg install openssl:x64-windows-static-md
         if: runner.os == 'Windows'
 
       - name: Set up cargo cache
@@ -48,8 +57,9 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/            
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-cargo-
 
+      # Setup package dependencies
       - name: Install npm dependencies
         run: npm ci
