@@ -8,7 +8,8 @@
     "build-debug": "npm run build --",
     "build-release": "npm run build -- --release",
     "install": "npm run build-release",
-    "test": "cargo test"
+    "test": "cargo test",
+    "nodetest": "node tests/index.js"
   },
   "author": "UnknownSKL <info@jimkroon.nl>",
   "license": "MIT",
