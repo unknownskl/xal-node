@@ -64,6 +64,19 @@ jobs:
       - name: Run NodeJS Tests
         run: npm run nodetest
 
-      
+      - name: Package the asset
+        run: npx node-pre-gyp package
 
-      
+      - name: Publish Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: xal-node
+          path: |
+            *.tar.gz
+
+      - name: Upload to Github releases
+        shell: bash
+        run: gh release upload ${{ env.RELEASE_VERSION }} "$(find ./build -name *.tar.gz)" --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: startsWith(github.ref, 'refs/tags/v')
