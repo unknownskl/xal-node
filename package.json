@@ -6,7 +6,9 @@
   "scripts": {
     "build": "rm -rf dist/ && tsc && cargo-cp-artifact -nc dist/xal-node.node -- cargo build --message-format=json-render-diagnostics",
     "build-debug": "npm run build --",
-    "build-release": "npm run build -- --release",
+    "build-release": "( bash -c 'uname -a | grep -q -i Darwin' && npm run build-release-osx ) || npm run build -- --release",
+    "build-release-osx": "npm run build -- --target=aarch64-apple-darwin --release && npm run build -- --target=x86_64-apple-darwin --release && npm run build-link",
+    "build-link": "lipo target/x86_64-apple-darwin/release/libxal_node.dylib target/aarch64-apple-darwin/release/libxal_node.dylib -output dist/xal-node.node -create",
     "install": "npm run build-release",
     "test": "cargo test",
     "nodetest": "node tests/index.js"
