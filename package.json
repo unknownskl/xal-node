@@ -11,7 +11,12 @@
     "build-link": "lipo target/x86_64-apple-darwin/release/libxal_node.dylib target/aarch64-apple-darwin/release/libxal_node.dylib -output dist/xal-node.node -create",
     "install": "npm run build-release",
     "test": "cargo test",
-    "nodetest": "node tests/index.js"
+    "nodetest": "node tests/index.js",
+
+    "auth": "tsc && node dist/bin/auth.js"
+  },
+  "bin": {
+    "xbox-auth": "./dist/bin/auth.js"
   },
   "author": "UnknownSKL <info@jimkroon.nl>",
   "license": "MIT",
