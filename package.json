@@ -4,7 +4,7 @@
   "description": "NodeJS bridge for xal-rs",
   "main": "dist/lib.js",
   "scripts": {
-    "build": "rm -rf dist/ && tsc && cargo-cp-artifact -nc dist/xal-node.node -- cargo build --message-format=json-render-diagnostics",
+    "build": "rm -rf dist/ && tsc && chmod +x dist/bin/auth.js && cargo-cp-artifact -nc dist/xal-node.node -- cargo build --message-format=json-render-diagnostics",
     "build-debug": "npm run build --",
     "build-release": "( bash -c 'uname -a | grep -q -i Darwin' && npm run build-release-osx ) || npm run build -- --release",
     "build-release-osx": "npm run build -- --target=aarch64-apple-darwin --release && npm run build -- --target=x86_64-apple-darwin --release && npm run build-link",

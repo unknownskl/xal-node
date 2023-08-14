@@ -17,6 +17,9 @@ if(fs.existsSync('./.xbox.tokens.json')){
     xalAuthenticator.flow_retrieve_xststoken(tokens.stage2.code_token, tokens.stage2.sisu_token).then((xsts_token) => {
         console.log('Retrieved XSTS Token from existing tokens:', xsts_token)
 
+        tokens.xsts_token = xsts_token
+        fs.writeFileSync('./.xbox.tokens.json', JSON.stringify(tokens))
+
         xalAuthenticator.close()
         readline.close()
     }).catch((error) => {
@@ -47,15 +50,19 @@ if(fs.existsSync('./.xbox.tokens.json')){
 
                 xalAuthenticator.flow_do_codeauth(code).then((tokens:any) => {
                     // console.log('Tokens:', tokens)
-                    fs.writeFileSync('./.xbox.tokens.json', JSON.stringify({
+                    const xaltokens = {
                         stage1: xalAuthenticator._authFlowTokens,
-                        stage2: tokens
-                    }))
+                        stage2: tokens,
+                        xsts_token: {}
+                    }
+                    fs.writeFileSync('./.xbox.tokens.json', JSON.stringify(xaltokens))
                     console.log('Tokens received and written to file: ./.xbox.tokens.json')
 
-                    xalAuthenticator.flow_retrieve_xststoken(tokens.code_token, tokens.sisu_token).then((xsts_token) => {
-                    // console.log('Retrieved XSTS Token using fresh tokens:', xsts_token)
-                    // console.log('xsts_token', xsts_token)
+                    xalAuthenticator.flow_retrieve_xststoken(tokens.code_token, tokens.sisu_token).then((xsts_token:any) => {
+                        // console.log('Retrieved XSTS Token using fresh tokens:', xsts_token)
+                        // console.log('xsts_token', xsts_token)
+                        xaltokens.xsts_token = xsts_token
+                        fs.writeFileSync('./.xbox.tokens.json', JSON.stringify(xaltokens))
 
                         xalAuthenticator.close()
                     }).catch((error) => {
