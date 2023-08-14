@@ -84,9 +84,9 @@ jobs:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #   if: startsWith(github.ref, 'refs/tags/v')
 
-      - name: Upload to Github releases
-        uses: actions/upload-artifact@v3
-        with:
-          path: |
-            build/**/*.tar.gz
-        if: startsWith(github.ref, 'refs/tags/v')
+      # - name: Upload to Github releases
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     path: |
+      #       build/**/*.tar.gz
+      #   if: startsWith(github.ref, 'refs/tags/v')
