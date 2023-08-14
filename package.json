@@ -1,6 +1,6 @@
 {
   "name": "xal-node",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "NodeJS bridge for xal-rs",
   "main": "dist/lib.js",
   "scripts": {
