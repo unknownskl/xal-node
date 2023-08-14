@@ -74,6 +74,9 @@ jobs:
           path: |
             build/stage/*/*.tar.gz
 
+      - name: Set release version
+        run: python3 -c "import os; tag = os.environ['GITHUB_REF'].split('/')[-1]; f = open(os.environ['GITHUB_ENV'], 'a'); f.write('RELEASE_VERSION='+tag); f.close();"
+
       - name: Upload to Github releases
         shell: bash
         run: gh release upload ${{ env.RELEASE_VERSION }} "$(find ./build -name *.tar.gz)" --clobber
