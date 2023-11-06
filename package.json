@@ -12,8 +12,8 @@
     "install": "npm run build-release",
     "test": "cargo test",
     "nodetest": "node tests/index.js",
-
-    "auth": "tsc && node dist/bin/auth.js"
+    "auth": "tsc && node dist/bin/auth.js",
+    "run": "tsc && node dist/bin/auth.js"
   },
   "bin": {
     "xbox-auth": "./dist/bin/auth.js"
@@ -21,7 +21,7 @@
   "author": "UnknownSKL <info@jimkroon.nl>",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.8.0",
+    "@types/node": "^20.8.2",
     "cargo-cp-artifact": "^0.1",
     "typescript": "^5.2.2"
   },
@@ -46,14 +46,15 @@
     "url": "https://github.com/unknownskl/xal-node/issues"
   },
   "homepage": "https://github.com/unknownskl/xal-node#readme",
-  "dependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.11"
-  },
   "binary": {
     "module_name": "xal-node",
     "module_path": "./dist",
     "host": "https://github.com/unknownskl/xal-node/releases/download/",
     "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}-{libc}.tar.gz",
     "remote_path": "{version}"
-}
+  },
+  "dependencies": {
+    "jose": "^5.1.0",
+    "uuid-1345": "^1.0.2"
+  }
 }
