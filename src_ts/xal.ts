@@ -591,7 +591,6 @@ export class XalAuthenticator {
 
     flow_retrieve_xststoken(code_token, sisu_token){
         return new Promise((resolve, reject) => {
-            console.log(code_token, sisu_token)
             this.do_xsts_authorization(sisu_token.DeviceToken, sisu_token.TitleToken.Token, sisu_token.UserToken.Token, "http://gssv.xboxlive.com/").then((xsts_token:any) => {
                 resolve(xsts_token)
         
