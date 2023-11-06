@@ -440,11 +440,7 @@ export class XalAuthenticator {
 
     generate_random_state() {
         return new Promise((resolve, reject) => {
-            // xalauthenticatorGenerateRandomState.call(this.handler).then((rs_resolve) => {
-            //     resolve(rs_resolve)
-            // }).catch((error) => {
-            //     reject(error)
-            // })
+            reject('WARNING: generate_random_state() is deprecated')
         })
     }
 
@@ -527,13 +523,13 @@ export class XalAuthenticator {
     }
 
 
-    exchange_refresh_token_for_xcloud_transfer_token(refresh_token:String) {
+    exchange_refresh_token_for_xcloud_transfer_token(refresh_token:string) {
         return new Promise((resolve, reject) => {
-            // xalauthenticatorExchangeRefreshTokenForXcloudTransferToken.call(this.handler, refresh_token).then((rs_resolve) => {
-            //     resolve(JSON.parse(rs_resolve))
-            // }).catch((error) => {
-            //     reject(error)
-            // })
+            this.handler.exchangeRefreshTokenForXcloudTransferToken(refresh_token).then((result) => {
+                resolve(result)
+            }).catch((error) => {
+                reject(error)
+            })
         })
     }
 

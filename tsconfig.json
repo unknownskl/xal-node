@@ -13,14 +13,14 @@
         "declarationMap": true,
         "sourceMap": true,
         "outDir": "./dist",
-        "rootDir": "./src_ts/",
+        "rootDir": "./src/",
         "strict": true,
         "esModuleInterop": true,
         "noImplicitAny": false,
         "resolveJsonModule": true
     },
     "include": [
-        "src_ts/"
+        "src/"
     ],
     "exclude": [
         "**/*.spec.ts"
