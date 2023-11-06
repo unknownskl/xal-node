@@ -33,46 +33,14 @@ jobs:
         with:
           node-version: 18
 
-      - run: echo "VCPKG_ROOT=$env:VCPKG_INSTALLATION_ROOT" | Out-File -FilePath $env:GITHUB_ENV -Append
-        if: runner.os == 'Windows'
-      - run: vcpkg install openssl:x64-windows-static-md
-        if: runner.os == 'Windows'
-
-      - name: Set up cargo cache
-        uses: actions/cache@v3
-        continue-on-error: false
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/            
-          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-${{ runner.arch }}-cargo-
-
-      # Setup package dependencies
       - name: Install npm dependencies
         run: npm ci
       
       - name: Build project
         run: npm run build
-      
-      - name: Run cargo tests
-        run: npm run test
-      
+
       - name: Run NodeJS Tests
-        run: npm run nodetest
-
-      - name: Package the asset
-        run: npx @mapbox/node-pre-gyp package
-
-      - name: Publish Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: xal-node
-          path: |
-            build/stage/*/*.tar.gz
+        run: npm run test
 
       - name: Set release version
         run: python3 -c "import os; tag = os.environ['GITHUB_REF'].split('/')[-1]; f = open(os.environ['GITHUB_ENV'], 'a'); f.write('RELEASE_VERSION='+tag); f.close();"
