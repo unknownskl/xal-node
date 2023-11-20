@@ -21,7 +21,7 @@
   "author": "UnknownSKL <info@jimkroon.nl>",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.8.0",
+    "@types/node": "^20.9.2",
     "cargo-cp-artifact": "^0.1",
     "typescript": "^5.2.2"
   },
