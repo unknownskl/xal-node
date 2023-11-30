@@ -1,10 +1,8 @@
 # xal-node
 
-**xal-node:** NodeJS bridge for [xal-rs](https://github.com/OpenXbox/xal-rs)
+**xal-node:** Typescript implementation for Xbox Authentication Library (XAL)
 
 ## Installing xal-node
-
-Installing xal-node requires a [supported version of Node and Rust](https://github.com/neon-bindings/neon#platform-support).
 
 You can install the project with npm. In the project directory, run:
 
@@ -22,13 +20,22 @@ If you have already installed the project and only want to run the build, run:
 $ npm run build
 ```
 
-This command uses the [cargo-cp-artifact](https://github.com/neon-bindings/cargo-cp-artifact) utility to run the Rust build and copy the built library into `./index.node`.
+## CLI
+
+You can install the `xbox-auth` cli app using the instructions below:
+
+```sh
+$ npm install -g xal-node
+```
 
 ## Tokens
 
-The tokens needs to be stored to be reused later.
-@TODO: Explain the tokens and when to save them etc.
+The tokens are stored in the current working directory in the file `.xbox.tokens.json`.
+
+## Roadmap
+
+The current library is a very bare bones implementation. The long term plan is to extend the library to support more authentication options and cycle tokens properly.
 
 ## Credits
 
-Big thanks to [@tuxuser](https://github.com/tuxuser) and [Team OpenXbox](https://github.com/OpenXbox) for creating the xal-rs library.
+Big thanks to [@tuxuser](https://github.com/tuxuser) and [Team OpenXbox](https://github.com/OpenXbox) for creating the xal-rs library and giving the inspiration to port this over to Typescript
