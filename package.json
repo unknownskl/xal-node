@@ -23,7 +23,7 @@
   "devDependencies": {
     "@types/node": "^20.8.0",
     "cargo-cp-artifact": "^0.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.3.2"
   },
   "repository": {
     "type": "git",
