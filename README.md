@@ -7,14 +7,12 @@
 You can install the project with npm. In the project directory, run:
 
 ```sh
-$ npm install
+$ npm install xal-node
 ```
-
-This fully installs the project, including installing any dependencies and running the build.
 
 ## Building xal-node
 
-If you have already installed the project and only want to run the build, run:
+Once the repository has been cloned you can run the command below to build the project:
 
 ```sh
 $ npm run build
@@ -27,6 +25,8 @@ You can install the `xbox-auth` cli app using the instructions below:
 ```sh
 $ npm install -g xal-node
 ```
+
+Once installed make sure the npm path is properly set. You should be able to run `xbox-auth` to generate a .xbox.tokens.json file with tokens.
 
 ## Tokens
 
