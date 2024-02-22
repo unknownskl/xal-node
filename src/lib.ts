@@ -1,7 +1,7 @@
 import TokenStore from './tokenstore'
-import { XalAuthenticator } from './xal'
+import Xal from './xal'
 
-export default {
+export {
     TokenStore,
-    XalAuthenticator
+    Xal,
 }
