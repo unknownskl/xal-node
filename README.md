@@ -35,6 +35,7 @@ Once installed make sure the npm path is properly set. You should be able to run
 | `xbox-auth auth` | Runs the authentication flow and provides an URL to login to. |
 | `xbox-auth show` | Shows the current status of the tokens and if they are expired or not. |
 | `xbox-auth refresh` | Refreshes the current stored tokens to new up to date tokens without running the full flow again. |
+| `xbox-auth tokens` | Fetches all tokens for use with xCloud and xHome |
 | `xbox-auth logout` | Removes the current stored tokens | 
 
 ## Tokens

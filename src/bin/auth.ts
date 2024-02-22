@@ -31,7 +31,7 @@ class Auth {
     constructor(){
         this._commander = program
             .version(pkg.version)
-            .addArgument(new Argument('command', 'Command to run').choices(['auth', 'show', 'refresh', 'logout']).default('auth'))
+            .addArgument(new Argument('command', 'Command to run').choices(['auth', 'show', 'refresh', 'tokens', 'logout']).default('auth'))
 
         for(const arg in this._options){
             const argData = this._options[arg]
@@ -107,6 +107,9 @@ Example commands:
 
         } else if(this._commander.args[0] == 'logout'){
             this.actionLogout()
+
+        } else if(this._commander.args[0] == 'tokens'){
+            this.actionTokens()
         }
     }
 
@@ -201,6 +204,29 @@ Example commands:
     actionLogout(){
         this._tokenStore.removeAll()
         console.log('Login data has been removed. You are now logged out.')
+    }
+
+    actionTokens(){
+        this.retrieveTokens().then((tokens) => {
+            //
+        }).catch((error) => {
+            console.log('Failed to retrieve tokens:', error)
+        })
+        
+    }
+
+    async retrieveTokens(){
+        const xstsToken = await this._xal.doXstsAuthorization(this._tokenStore._sisuToken?.data, 'http://gssv.xboxlive.com/')
+
+        const msalToken = await this._xal.exchangeRefreshTokenForXcloudTransferToken(this._tokenStore._userToken?.data.refresh_token)
+        const webToken = await this._xal.doXstsAuthorization(this._tokenStore._sisuToken?.data, 'http://xboxlive.com/')
+
+        const xhomeToken = await this._xal.getStreamToken(xstsToken, 'xhome')
+        const gpuToken = await this._xal.getStreamToken(xstsToken, 'xgpuweb')
+        // const gpuToken = await this._xal.getStreamToken(xstsToken, 'xgpuwebf2p')
+
+        console.log('Tokens:\n- XSTS Token: ', JSON.stringify(xstsToken, null, 4), '\n- MSAL Token:', JSON.stringify(msalToken, null, 4), '\n- Web Token:', JSON.stringify(webToken, null, 4))
+        console.log('Offering tokens:\n- xHome:', JSON.stringify(xhomeToken, null, 4), '\n- xCloud:', JSON.stringify(gpuToken, null, 4))
     }
 }
 

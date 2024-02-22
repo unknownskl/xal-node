@@ -293,72 +293,66 @@ export default class Xal {
 
     exchangeCodeForToken(code:string, codeVerifier){
         return new Promise<AccessToken>((resolve, reject) => {
-            this.getKeys().then((jwtKeys:any) => {
-
-                const payload = {
-                    'client_id': this._app.AppId,
-                    'code': code,
-                    'code_verifier': codeVerifier,
-                    'grant_type': 'authorization_code',
-                    'redirect_uri': this._app.RedirectUri,
-                    'scope': 'service::user.auth.xboxlive.com::MBI_SSL'
-                }
-                
-                const body = new URLSearchParams(payload).toString()
-                const headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Cache-Control': 'no-store, must-revalidate, no-cache',
-                }
+            const payload = {
+                'client_id': this._app.AppId,
+                'code': code,
+                'code_verifier': codeVerifier,
+                'grant_type': 'authorization_code',
+                'redirect_uri': this._app.RedirectUri,
+                'scope': 'service::user.auth.xboxlive.com::MBI_SSL'
+            }
             
-                const HttpClient = new Http()
-                HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
-                    resolve((response.body() as AccessToken))
+            const body = new URLSearchParams(payload).toString()
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Cache-Control': 'no-store, must-revalidate, no-cache',
+            }
+        
+            const HttpClient = new Http()
+            HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
+                resolve((response.body() as AccessToken))
 
-                }).catch((error) => {
-                    reject(error)
-                })
+            }).catch((error) => {
+                reject(error)
             })
         })
     }
 
     refreshUserToken(refreshToken:string){
         return new Promise<AccessToken>((resolve, reject) => {
-            this.getKeys().then((jwtKeys:any) => {
-
-                const payload = {
-                    'client_id': this._app.AppId,
-                    'grant_type': 'refresh_token',
-                    'refresh_token': refreshToken,
-                    'scope': 'service::user.auth.xboxlive.com::MBI_SSL'
-                }
-                
-                const body = new URLSearchParams(payload).toString()
-                const headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Cache-Control': 'no-store, must-revalidate, no-cache',
-                }
+            const payload = {
+                'client_id': this._app.AppId,
+                'grant_type': 'refresh_token',
+                'refresh_token': refreshToken,
+                'scope': 'service::user.auth.xboxlive.com::MBI_SSL'
+            }
             
-                const HttpClient = new Http()
-                HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
-                    resolve((response.body() as AccessToken))
+            const body = new URLSearchParams(payload).toString()
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Cache-Control': 'no-store, must-revalidate, no-cache',
+            }
+        
+            const HttpClient = new Http()
+            HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
+                resolve((response.body() as AccessToken))
 
-                }).catch((error) => {
-                    reject(error)
-                })
+            }).catch((error) => {
+                reject(error)
             })
         })
     }
 
-    doXstsAuthorization(deviceToken:string, titleToken:string, userToken:string, relyingParty:string){
+    doXstsAuthorization(sisuToken:SisuAuthorizationResponse, relyingParty:string){
         return new Promise<XstsAuthorizationResponse>((resolve, reject) => {
             this.getKeys().then((jwtKeys:any) => {
 
                 const payload = {
                     Properties: {
                         SandboxId: 'RETAIL',
-                        DeviceToken: deviceToken,
-                        TitleToken: titleToken,
-                        UserTokens: [userToken]
+                        DeviceToken: sisuToken.DeviceToken,
+                        TitleToken: sisuToken.TitleToken.Token,
+                        UserTokens: [sisuToken.UserToken.Token]
                     },
                     RelyingParty: relyingParty,
                     TokenType: 'JWT'
@@ -384,31 +378,53 @@ export default class Xal {
 
     exchangeRefreshTokenForXcloudTransferToken(refreshToken:string){
         return new Promise<AccessToken>((resolve, reject) => {
-            this.getKeys().then((jwtKeys:any) => {
-
-                const payload = {
-                    client_id: this._app.AppId,
-                    grant_type: 'refresh_token',
-                    scope: 'service::http://Passport.NET/purpose::PURPOSE_XBOX_CLOUD_CONSOLE_TRANSFER_TOKEN',
-                    refresh_token: refreshToken,
-                    code: '',
-                    code_verifier: '',
-                    redirect_uri: '',
-                }
-                
-                const body = new URLSearchParams(payload).toString()
-                const headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Cache-Control': 'no-store, must-revalidate, no-cache',
-                }
+            const payload = {
+                client_id: this._app.AppId,
+                grant_type: 'refresh_token',
+                scope: 'service::http://Passport.NET/purpose::PURPOSE_XBOX_CLOUD_CONSOLE_TRANSFER_TOKEN',
+                refresh_token: refreshToken,
+                code: '',
+                code_verifier: '',
+                redirect_uri: '',
+            }
             
-                const HttpClient = new Http()
-                HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
-                    resolve((response.body() as AccessToken))
+            const body = new URLSearchParams(payload).toString()
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Cache-Control': 'no-store, must-revalidate, no-cache',
+            }
+        
+            const HttpClient = new Http()
+            HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
+                resolve((response.body() as AccessToken))
 
-                }).catch((error) => {
-                    reject(error)
-                })
+            }).catch((error) => {
+                reject(error)
+            })
+        })
+    }
+
+    getStreamToken(xstsToken:XstsAuthorizationResponse, offering:string){
+        return new Promise<AccessToken>((resolve, reject) => {
+            const payload = {
+                'token': xstsToken.Token,
+                'offeringId': offering,
+            }
+            
+            const body = JSON.stringify(payload)
+            const headers = {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-store, must-revalidate, no-cache',
+                'x-gssv-client': 'XboxComBrowser',
+                'Content-Length': body.length,
+            }
+        
+            const HttpClient = new Http()
+            HttpClient.postRequest(offering+'.gssv-play-prod.xboxlive.com', '/v2/login/user', headers, body).then((response) => {
+                resolve((response.body() as AccessToken))
+
+            }).catch((error) => {
+                reject(error)
             })
         })
     }
