@@ -114,7 +114,6 @@ Example commands:
     async getRedirectUri(){
         try {
             this._deviceToken = await this._xal.getDeviceToken()
-            console.log('devicetoken:',this._deviceToken)
 
             const codeChallange = await this._xal.getCodeChallange()
             this._state = this._xal.getRandomState()
