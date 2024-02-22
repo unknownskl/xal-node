@@ -1,6 +1,7 @@
 import Http from './lib/http'
 import crypto, { subtle, KeyObject } from 'crypto'
 import { exportJWK } from 'jose'
+import StreamingToken from './lib/streamingtoken'
 
 const UUID = require('uuid-1345')
 const nextUUID = () => UUID.v3({ namespace: '6ba7b811-9dad-11d1-80b4-00c04fd430c8', name: Date.now().toString() })
@@ -76,6 +77,39 @@ interface XstsAuthorizationResponse extends TokenData {
         }
     }
 }
+
+export interface StreamToken {
+    offeringSettings: OfferingSettings
+    market: string
+    gsToken: string
+    tokenType: string
+    durationInSeconds: number
+}
+  
+export interface OfferingSettings {
+    allowRegionSelection: boolean
+    regions: Region[]
+    selectableServerTypes: any
+    clientCloudSettings: ClientCloudSettings
+}
+
+export interface Region {
+    name: string
+    baseUri: string
+    networkTestHostname: string
+    isDefault: boolean
+    systemUpdateGroups: any
+    fallbackPriority: number
+}
+
+export interface ClientCloudSettings {
+    Environments: Environment[]
+}
+
+export interface Environment {
+    Name: string
+    AuthBaseUri?: string
+}  
 
 export default class Xal {
 
@@ -405,7 +439,7 @@ export default class Xal {
     }
 
     getStreamToken(xstsToken:XstsAuthorizationResponse, offering:string){
-        return new Promise<AccessToken>((resolve, reject) => {
+        return new Promise<StreamingToken>((resolve, reject) => {
             const payload = {
                 'token': xstsToken.Token,
                 'offeringId': offering,
@@ -421,7 +455,7 @@ export default class Xal {
         
             const HttpClient = new Http()
             HttpClient.postRequest(offering+'.gssv-play-prod.xboxlive.com', '/v2/login/user', headers, body).then((response) => {
-                resolve((response.body() as AccessToken))
+                resolve(new StreamingToken(response.body() as StreamToken))
 
             }).catch((error) => {
                 reject(error)
@@ -468,205 +502,3 @@ export default class Xal {
         return header
     }
 }
-
-
-
-
-
-// interface authFlowTokens {
-//     sisu_local_code_verifier: string,
-//     sisu_session_id: string,
-//     sisu_device_token: any,
-//     redirect_uri: string,
-// }
-
-// export class XalLegacy {
-//     handler:Xal
-
-//     constructor(){
-//         this.handler = new Xal()
-//     }
-
-//     close() {
-//         //
-//     }
-
-//     get_code_challenge() {
-//         return new Promise<CodeChallange>((resolve, reject) => {
-//             this.handler.getCodeChallange().then((result) => {
-//                 resolve(result)
-//             }).catch((error) => {
-//                 reject(error)
-//             })
-//         })
-//     }
-
-//     get_device_token() {
-//         return new Promise<DeviceToken>((resolve, reject) => {
-//             this.handler.getDeviceToken().then((result) => {
-//                 resolve(result)
-//             }).catch((error) => {
-//                 reject(error)
-//             })
-//         })
-//     }
-
-//     generate_random_state() {
-//         return new Promise((resolve, reject) => {
-//             reject('WARNING: generate_random_state() is deprecated')
-//         })
-//     }
-
-//     do_sisu_authentication(device_token:string) {
-//         return new Promise((resolve, reject) => {
-//             const Token:DeviceToken = {
-//                 Token: device_token,
-//                 IssueInstant: '',
-//                 NotAfter: '',
-//                 DisplayClaims: {
-//                     xdi: {
-//                         did: '',
-//                         dcs: 0,
-//                     }
-//                 },
-//             }
-//             const state = this.handler.getRandomState()
-//             this.handler.getCodeChallange().then((codeChallange) => {
-//                 this.handler.doSisuAuthentication(Token, codeChallange, state).then((result) => {
-//                     resolve({
-//                         local_code_verifier: codeChallange.verifier,
-//                         sisu_session_id: result.SessionId,
-//                         msal_response: result,
-//                     })
-//                 }).catch((error) => {
-//                     reject(error)
-//                 })
-//             })
-            
-//         })
-//     }
-
-//     do_sisu_authorization(sisu_session_id:string, user_token:string, device_token:string) {
-//         return new Promise<SisuAuthorizationResponse>((resolve, reject) => {
-//             const UserToken:AccessToken = {
-//                 token_type: '',
-//                 expires_in: 0,
-//                 scope: '',
-//                 access_token: user_token,
-//                 refresh_token: '',
-//                 user_id: '',
-//             }
-//             const DeviceToken:DeviceToken = {
-//                 Token: device_token,
-//                 IssueInstant: '',
-//                 NotAfter: '',
-//                 DisplayClaims: {
-//                     xdi: {
-//                         did: '',
-//                         dcs: 0,
-//                     }
-//                 },
-//             }
-//             this.handler.doSisuAuthorization(UserToken, DeviceToken, sisu_session_id).then((result) => {
-//                 resolve(result)
-//             }).catch((error) => {
-//                 reject(error)
-//             })
-//         })
-//     }
-
-//     exchange_code_for_token(code:string, local_verifier:string) {
-//         return new Promise<AccessToken>((resolve, reject) => {
-//             this.handler.exchangeCodeForToken(code, local_verifier).then((result) => {
-//                 resolve(result)
-//             }).catch((error) => {
-//                 reject(error)
-//             })
-//         })
-//     }
-
-//     do_xsts_authorization(device_token:string, title_token:string, user_token:string, relayingparty:string) {
-//         return new Promise<XstsAuthorizationResponse>((resolve, reject) => {
-//             this.handler.doXstsAuthorization(device_token, title_token, user_token, relayingparty).then((result) => {
-//                 resolve(result)
-//             }).catch((error) => {
-//                 reject(error)
-//             })
-//         })
-//     }
-
-
-//     exchange_refresh_token_for_xcloud_transfer_token(refresh_token:string) {
-//         return new Promise<AccessToken>((resolve, reject) => {
-//             this.handler.exchangeRefreshTokenForXcloudTransferToken(refresh_token).then((result) => {
-//                 resolve(result)
-//             }).catch((error) => {
-//                 reject(error)
-//             })
-//         })
-//     }
-
-//     _authFlowTokens:authFlowTokens = {
-//         sisu_local_code_verifier: '',
-//         sisu_session_id: '',
-//         sisu_device_token: {},
-//         redirect_uri: '',
-//     }
-
-//     flow_retrieve_devicetoken(){
-//         return new Promise((resolve, reject) => {
-//             this.get_device_token().then((device_token) => {            
-//                 this.do_sisu_authentication(device_token.Token).then((sisu_response:any) => {
-//                     this._authFlowTokens = {
-//                         sisu_local_code_verifier: sisu_response.local_code_verifier,
-//                         sisu_session_id: sisu_response.sisu_session_id,
-//                         sisu_device_token: device_token,
-//                         redirect_uri: sisu_response.msal_response.MsaOauthRedirect,
-//                     }
-
-//                     resolve(this._authFlowTokens)
-
-//                 }).catch((error) => {
-//                     reject(error)
-//                 })
-                
-//             }).catch((error) => {
-//                 reject(error)
-//             })
-//         })
-//     }
-
-//     flow_do_codeauth(code){
-//         return new Promise<{ code_token: AccessToken, sisu_token: SisuAuthorizationResponse }>((resolve, reject) => {
-//             this.exchange_code_for_token(code, this._authFlowTokens.sisu_local_code_verifier).then((res5) => {
-//                 this.do_sisu_authorization(this._authFlowTokens.sisu_session_id, res5.access_token, this._authFlowTokens.sisu_device_token.Token).then((res6) => {
-
-//                     resolve({
-//                         code_token: res5,
-//                         sisu_token: res6
-//                     })
-
-//                 }).catch((error) => {
-//                     reject(error)
-//                 })
-        
-//             }).catch((error) => {
-//                 reject(error)
-//             })
-//         })
-//     }
-
-
-
-//     flow_retrieve_xststoken(code_token, sisu_token){
-//         return new Promise<XstsAuthorizationResponse>((resolve, reject) => {
-//             this.do_xsts_authorization(sisu_token.DeviceToken, sisu_token.TitleToken.Token, sisu_token.UserToken.Token, "http://gssv.xboxlive.com/").then((xsts_token) => {
-//                 resolve(xsts_token)
-        
-//             }).catch((error) => {
-//                 reject(error)
-//             })
-//         })
-//     }
-
-// }

@@ -72,8 +72,6 @@ Example commands:
     }
 
     run(){
-        // console.log('tokenStore', this._tokenStore)
-
         if(this._commander.args[0] == 'auth'){
 
             if(this._tokenStore.hasValidAuthTokens()){
@@ -166,16 +164,13 @@ Example commands:
     }
 
     actionShow(){
-        // this._tokenStore
-
+        
         console.log('Current authentication status:')
         console.log(' UserToken: isAuthenticated('+this._tokenStore._userToken?.isValid()+') Seconds remaining:', this._tokenStore._userToken?.getSecondsValid())
         console.log(' SisuToken: isAuthenticated('+this._tokenStore._sisuToken?.isValid()+') Seconds remaining:', this._tokenStore._sisuToken?.getSecondsValid())
         console.log(' ')
         console.log(' User Hash:', this._tokenStore._sisuToken?.getUserHash())
         console.log(' Gamertag:', this._tokenStore._sisuToken?.getGamertag())
-
-        // console.log(this._tokenStore._sisuToken?.data.UserToken.DisplayClaims, this._tokenStore._sisuToken?.data.AuthorizationToken.DisplayClaims)
     }
 
     actionRefresh(){
@@ -222,8 +217,12 @@ Example commands:
         const webToken = await this._xal.doXstsAuthorization(this._tokenStore._sisuToken?.data, 'http://xboxlive.com/')
 
         const xhomeToken = await this._xal.getStreamToken(xstsToken, 'xhome')
-        const gpuToken = await this._xal.getStreamToken(xstsToken, 'xgpuweb')
-        // const gpuToken = await this._xal.getStreamToken(xstsToken, 'xgpuwebf2p')
+        let gpuToken;
+        try {
+            gpuToken = await this._xal.getStreamToken(xstsToken, 'xgpuweb')
+        } catch(error){
+            gpuToken = await this._xal.getStreamToken(xstsToken, 'xgpuwebf2p')
+        }
 
         console.log('Tokens:\n- XSTS Token: ', JSON.stringify(xstsToken, null, 4), '\n- MSAL Token:', JSON.stringify(msalToken, null, 4), '\n- Web Token:', JSON.stringify(webToken, null, 4))
         console.log('Offering tokens:\n- xHome:', JSON.stringify(xhomeToken, null, 4), '\n- xCloud:', JSON.stringify(gpuToken, null, 4))
@@ -231,95 +230,3 @@ Example commands:
 }
 
 new Auth().run()
-
-
-
-
-
-
-
-
-
-
-
-
-// const readline = require('readline').createInterface({
-//     input: process.stdin,
-//     output: process.stdout
-// });
-
-// // console.log(xalAuthenticator)
-
-// if(fs.existsSync('./.xbox.tokens.json')){
-//     const tokensData = fs.readFileSync('./.xbox.tokens.json')
-//     const tokens = JSON.parse(tokensData.toString())
-
-//     xalAuthenticator.flow_retrieve_xststoken(tokens.stage2.code_token, tokens.stage2.sisu_token).then((xsts_token) => {
-//         console.log('Retrieved XSTS Token from existing tokens:', xsts_token)
-
-//         tokens.xsts_token = xsts_token
-//         fs.writeFileSync('./.xbox.tokens.json', JSON.stringify(tokens))
-
-//         xalAuthenticator.close()
-//         readline.close()
-//     }).catch((error) => {
-//         console.log('error stage2:', error)
-//         xalAuthenticator.close()
-//         readline.close()
-//     })
-
-// } else {
-
-//     xalAuthenticator.flow_retrieve_devicetoken().then((data:any) => {
-//         console.log('Open redirect:', data.redirect_uri)
-
-//         readline.question('Enter redirect uri: ', redirectUri => {
-//             readline.close()
-//             const url = new URL(redirectUri)
-
-//             const error = url.searchParams.get('error')
-//             if(error){
-//                 const error_description = url.searchParams.get('error_description')
-//                 console.log('authentication', __filename+'[startWebviewHooks()] Received error from oauth:', error_description)
-//                 xalAuthenticator.close()
-//             }
-
-//             const code = url.searchParams.get('code')
-//             if(code){
-//                 const state = url.searchParams.get('state')
-
-//                 xalAuthenticator.flow_do_codeauth(code).then((tokens:any) => {
-//                     // console.log('Tokens:', tokens)
-//                     const xaltokens = {
-//                         stage1: xalAuthenticator._authFlowTokens,
-//                         stage2: tokens,
-//                         xsts_token: {}
-//                     }
-//                     fs.writeFileSync('./.xbox.tokens.json', JSON.stringify(xaltokens))
-//                     console.log('Tokens received and written to file: ./.xbox.tokens.json')
-
-//                     xalAuthenticator.flow_retrieve_xststoken(tokens.code_token, tokens.sisu_token).then((xsts_token:any) => {
-//                         // console.log('Retrieved XSTS Token using fresh tokens:', xsts_token)
-//                         // console.log('xsts_token', xsts_token)
-//                         xaltokens.xsts_token = xsts_token
-//                         fs.writeFileSync('./.xbox.tokens.json', JSON.stringify(xaltokens))
-
-//                         xalAuthenticator.close()
-//                     }).catch((error) => {
-//                         console.log('error stage2:', error)
-//                         xalAuthenticator.close()
-//                     })
-
-//                     // We should save the above tokens.
-//                 }).catch((error) => {
-//                     console.log('error stage2:', error)
-//                     xalAuthenticator.close()
-//                 })
-//             }
-//         })
-
-//     }).catch((error) => {
-//         console.log('error stage1:', error)
-//         xalAuthenticator.close()
-//     })
-// }
