@@ -26,7 +26,15 @@ You can install the `xbox-auth` cli app using the instructions below:
 $ npm install -g xal-node
 ```
 
-Once installed make sure the npm path is properly set. You should be able to run `xbox-auth` to generate a .xbox.tokens.json file with tokens.
+Once installed make sure the npm path is properly set. You should be able to run `xbox-auth` to start the program.
+
+## Available commands
+
+| Command | Description |
+| `xbox-auth auth` | Runs the authentication flow and provides an URL to login to. |
+| `xbox-auth show` | Shows the current status of the tokens and if they are expired or not. |
+| `xbox-auth refresh` | Refreshes the current stored tokens to new up to date tokens without running the full flow again. |
+| `xbox-auth logout` | Removes the current stored tokens | 
 
 ## Tokens
 
