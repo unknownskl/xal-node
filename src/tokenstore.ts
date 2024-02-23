@@ -1,8 +1,10 @@
-import { SisuAuthorizationResponse, AccessToken } from './xal'
+import { ISisuAuthorizationResponse, IAccessToken } from './xal'
 import Token from './lib/token'
 import fs from 'fs'
+import SisuToken from './lib/sisutoken'
+import UserToken from './lib/usertoken'
 
-export interface UserToken extends AccessToken {
+export interface IUserToken extends IAccessToken {
     expires_on:string
 }
 
@@ -11,8 +13,8 @@ export default class TokenStore {
     _filepath:string = ''
 
     // Main tokens
-    _userToken:Token | undefined
-    _sisuToken:Token | undefined
+    _userToken:UserToken | undefined
+    _sisuToken:SisuToken | undefined
     _jwtKeys:any
 
     // Sub-Tokens
@@ -33,11 +35,11 @@ export default class TokenStore {
         const jsonData:{ userToken:any, sisuToken:any, jwtKeys:any } = JSON.parse(json)
 
         if(jsonData.userToken){
-            this._userToken = new Token(jsonData.userToken)
+            this._userToken = new UserToken(jsonData.userToken)
         }
 
         if(jsonData.sisuToken){
-            this._sisuToken = new Token(jsonData.sisuToken)
+            this._sisuToken = new SisuToken(jsonData.sisuToken)
         }
 
         if(jsonData.jwtKeys){
@@ -47,15 +49,15 @@ export default class TokenStore {
         return true
     }
 
-    setUserToken(userToken:AccessToken) {
+    setUserToken(userToken:IAccessToken) {
         const expireDate = new Date()
         expireDate.setSeconds(expireDate.getSeconds() + userToken.expires_in)
 
         this._userToken = new Token({ ...userToken, expires_on: expireDate.toISOString() })
     }
 
-    setSisuToken(sisuToken:SisuAuthorizationResponse) {
-        this._sisuToken = new Token(sisuToken)
+    setSisuToken(sisuToken:ISisuAuthorizationResponse) {
+        this._sisuToken = new SisuToken(sisuToken)
     }
 
     setJwtKeys(jwtKeys:any) {
@@ -95,7 +97,4 @@ export default class TokenStore {
 
         return true
     }
-
-    
-
 }

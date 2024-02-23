@@ -173,13 +173,20 @@ Example commands:
     }
 
     actionRefresh(){
-        this._xal.refreshUserToken(this._tokenStore._userToken?.data.refresh_token).then((token) => {
+        if(this._tokenStore._userToken === undefined){
+            console.log('Please authenticate first using `xbox-auth auth`.')
+            return
+        }
+
+        const userToken = this._tokenStore._userToken.data
+
+        this._xal.refreshUserToken(userToken.refresh_token).then((token) => {
             this._tokenStore.setUserToken(token)
             this._tokenStore.save()
 
             this._xal.getDeviceToken().then((deviceToken) => {
 
-                this._xal.doSisuAuthorization(this._tokenStore._userToken?.data, deviceToken).then((tokens) => {
+                this._xal.doSisuAuthorization(userToken, deviceToken).then((tokens) => {
                     this._tokenStore.setSisuToken(tokens)
                     this._tokenStore.save()
 
@@ -210,6 +217,11 @@ Example commands:
     }
 
     async retrieveTokens(){
+        if(this._tokenStore._userToken === undefined || this._tokenStore._sisuToken === undefined){
+            console.log('Please authenticate first using `xbox-auth auth`.')
+            return
+        }
+
         const xstsToken = await this._xal.doXstsAuthorization(this._tokenStore._sisuToken?.data, 'http://gssv.xboxlive.com/')
 
         const msalToken = await this._xal.exchangeRefreshTokenForXcloudTransferToken(this._tokenStore._userToken?.data.refresh_token)
@@ -220,6 +232,7 @@ Example commands:
         try {
             gpuToken = await this._xal.getStreamToken(xstsToken, 'xgpuweb')
         } catch(error){
+            // Retrieving the xgpuweb offering failed, lats try xgpuwebf2p
             gpuToken = await this._xal.getStreamToken(xstsToken, 'xgpuwebf2p')
         }
 

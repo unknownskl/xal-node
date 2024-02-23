@@ -12,50 +12,19 @@ export default class Token {
     }
 
     getSecondsValid(){
-        if(this.data.expires_on){
-            return this.calculateSecondsLeft(new Date(this.data.expires_on))
-        }
-
-        if(this.data.TitleToken && this.data.UserToken && this.data.AuthorizationToken){
-            const secondsLeftTitle = this.calculateSecondsLeft(new Date(this.data.TitleToken.NotAfter))
-            const secondsLeftUser = this.calculateSecondsLeft(new Date(this.data.UserToken.NotAfter))
-            const secondsLeftAuthorization = this.calculateSecondsLeft(new Date(this.data.AuthorizationToken.NotAfter))
-            return Math.min(secondsLeftTitle, secondsLeftUser, secondsLeftAuthorization)
-        }
+        console.log('Warning: getSecondsValid not implemented')
 
         return 0
     }
 
-    isValid(){
-        if(this.data.expires_on){
-            const secondsLeft = this.calculateSecondsLeft(new Date(this.data.expires_on))
-            return secondsLeft > 0
-        }
-
-        if(this.data.TitleToken && this.data.UserToken && this.data.AuthorizationToken){
-            const secondsLeftTitle = this.calculateSecondsLeft(new Date(this.data.TitleToken.NotAfter))
-            if(secondsLeftTitle <= 0){
-                return false
-            }
-
-            const secondsLeftUser = this.calculateSecondsLeft(new Date(this.data.UserToken.NotAfter))
-            if(secondsLeftUser <= 0){
-                return false
-            }
-
-            const secondsLeftAuthorization = this.calculateSecondsLeft(new Date(this.data.AuthorizationToken.NotAfter))
-            if(secondsLeftAuthorization <= 0){
-                return false
-            }
-
-            return true
-        }
+    isValid(){ 
+        console.log('Warning: isValid not implemented')
 
         return false
     }
 
     getUserHash(){
-        if(this.data.UserToken){
+        if('UserToken' in this.data){
             return this.data.UserToken.DisplayClaims.xui[0].uhs
         }
 
@@ -63,7 +32,7 @@ export default class Token {
     }
 
     getGamertag(){
-        if(this.data.AuthorizationToken){
+        if('AuthorizationToken' in this.data){
             return this.data.AuthorizationToken.DisplayClaims.xui[0].gtg
         }
 

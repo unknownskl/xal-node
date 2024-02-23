@@ -6,14 +6,14 @@ import StreamingToken from './lib/streamingtoken'
 const UUID = require('uuid-1345')
 const nextUUID = () => UUID.v3({ namespace: '6ba7b811-9dad-11d1-80b4-00c04fd430c8', name: Date.now().toString() })
 
-interface TokenData {
+interface ITokenData {
     IssueInstant: string
     NotAfter: string
     Token: string
     DisplayClaims: any
 }
 
-interface DeviceToken extends TokenData {
+interface IDeviceToken extends ITokenData {
     DisplayClaims: {
         xdi: {
             did: string
@@ -22,7 +22,7 @@ interface DeviceToken extends TokenData {
     }
 }
 
-interface TitleToken extends TokenData {
+interface ITitleToken extends ITokenData {
     DisplayClaims: {
         xti: {
             tid: string
@@ -30,7 +30,7 @@ interface TitleToken extends TokenData {
     }
 }
 
-interface UserToken extends TokenData {
+interface IUserToken extends ITokenData {
     DisplayClaims: {
         xui: {
             uhs: string
@@ -38,22 +38,22 @@ interface UserToken extends TokenData {
     }
 }
 
-interface CodeChallange {
+interface ICodeChallange {
     value: string
     method: string
     verifier: string
 }
 
-interface SisuAuthenticationResponse {
+interface ISisuAuthenticationResponse {
     MsaOauthRedirect: string
     MsaRequestParameters: {}
     SessionId: string
 }
 
-export interface SisuAuthorizationResponse {
+export interface ISisuAuthorizationResponse {
     DeviceToken: string
-    TitleToken: TitleToken
-    UserToken: UserToken
+    TitleToken: ITitleToken
+    UserToken: IUserToken
     AuthorizationToken
     WebPage: string
     Sandbox: string
@@ -61,7 +61,7 @@ export interface SisuAuthorizationResponse {
     Flow: string
 }
 
-export interface AccessToken {
+export interface IAccessToken {
     token_type: string
     expires_in: number
     scope: string
@@ -70,7 +70,7 @@ export interface AccessToken {
     user_id: string
 }
 
-interface XstsAuthorizationResponse extends TokenData {
+interface IXstsAuthorizationResponse extends ITokenData {
     DisplayClaims: {
         xui: {
             uhs: string
@@ -78,22 +78,22 @@ interface XstsAuthorizationResponse extends TokenData {
     }
 }
 
-export interface StreamToken {
-    offeringSettings: OfferingSettings
+export interface IStreamToken {
+    offeringSettings: IOfferingSettings
     market: string
     gsToken: string
     tokenType: string
     durationInSeconds: number
 }
   
-export interface OfferingSettings {
+export interface IOfferingSettings {
     allowRegionSelection: boolean
-    regions: Region[]
+    regions: IRegion[]
     selectableServerTypes: any
-    clientCloudSettings: ClientCloudSettings
+    clientCloudSettings: IClientCloudSettings
 }
 
-export interface Region {
+export interface IRegion {
     name: string
     baseUri: string
     networkTestHostname: string
@@ -102,11 +102,11 @@ export interface Region {
     fallbackPriority: number
 }
 
-export interface ClientCloudSettings {
-    Environments: Environment[]
+export interface IClientCloudSettings {
+    Environments: IEnvironment[]
 }
 
-export interface Environment {
+export interface IEnvironment {
     Name: string
     AuthBaseUri?: string
 }  
@@ -179,7 +179,7 @@ export default class Xal {
     codeChallange
 
     getCodeChallange() {
-        return new Promise<CodeChallange>((resolve, reject) => {
+        return new Promise<ICodeChallange>((resolve, reject) => {
             if(this.codeChallange === undefined){
                 const code_verifier = Buffer.from(crypto.pseudoRandomBytes(32)).toString('base64url')
 
@@ -204,7 +204,7 @@ export default class Xal {
     }
 
     getDeviceToken() {
-        return new Promise<DeviceToken>((resolve, reject) => {
+        return new Promise<IDeviceToken>((resolve, reject) => {
             this.getKeys().then((jwtKeys:any) => {
                 const payload = {
                     Properties: {
@@ -235,7 +235,7 @@ export default class Xal {
             
                 const HttpClient = new Http()
                 HttpClient.postRequest('device.auth.xboxlive.com', '/device/authenticate', headers, body).then((response) => {
-                    resolve((response.body() as DeviceToken))
+                    resolve((response.body() as IDeviceToken))
 
                 }).catch((error) => {
                     reject(error)
@@ -244,8 +244,8 @@ export default class Xal {
         })
     }
 
-    doSisuAuthentication(deviceToken:DeviceToken, codeChallange:CodeChallange, state){
-        return new Promise<SisuAuthenticationResponse>((resolve, reject) => {
+    doSisuAuthentication(deviceToken:IDeviceToken, codeChallange:ICodeChallange, state){
+        return new Promise<ISisuAuthenticationResponse>((resolve, reject) => {
             this.getKeys().then((jwtKeys:any) => {
 
                 const payload = {
@@ -275,7 +275,7 @@ export default class Xal {
                 HttpClient.postRequest('sisu.xboxlive.com', '/authenticate', headers, body).then((response) => {
                     // Add SessionId to response object
                     const resBody = { SessionId: response.headers['x-sessionid'], ...response.body() }
-                    resolve(( resBody as SisuAuthenticationResponse))
+                    resolve(( resBody as ISisuAuthenticationResponse))
 
                 }).catch((error) => {
                     reject(error)
@@ -284,8 +284,8 @@ export default class Xal {
         })
     }
 
-    doSisuAuthorization(userToken:AccessToken, deviceToken:DeviceToken, SessionId?:string){
-        return new Promise<SisuAuthorizationResponse>((resolve, reject) => {
+    doSisuAuthorization(userToken:IAccessToken, deviceToken:IDeviceToken, SessionId?:string){
+        return new Promise<ISisuAuthorizationResponse>((resolve, reject) => {
             this.getKeys().then((jwtKeys:any) => {
 
                 const payload = {
@@ -316,7 +316,7 @@ export default class Xal {
             
                 const HttpClient = new Http()
                 HttpClient.postRequest('sisu.xboxlive.com', '/authorize', headers, body).then((response) => {
-                    resolve(( response.body() as SisuAuthorizationResponse))
+                    resolve(( response.body() as ISisuAuthorizationResponse))
 
                 }).catch((error) => {
                     reject(error)
@@ -326,7 +326,7 @@ export default class Xal {
     }
 
     exchangeCodeForToken(code:string, codeVerifier){
-        return new Promise<AccessToken>((resolve, reject) => {
+        return new Promise<IAccessToken>((resolve, reject) => {
             const payload = {
                 'client_id': this._app.AppId,
                 'code': code,
@@ -344,7 +344,7 @@ export default class Xal {
         
             const HttpClient = new Http()
             HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
-                resolve((response.body() as AccessToken))
+                resolve((response.body() as IAccessToken))
 
             }).catch((error) => {
                 reject(error)
@@ -353,7 +353,7 @@ export default class Xal {
     }
 
     refreshUserToken(refreshToken:string){
-        return new Promise<AccessToken>((resolve, reject) => {
+        return new Promise<IAccessToken>((resolve, reject) => {
             const payload = {
                 'client_id': this._app.AppId,
                 'grant_type': 'refresh_token',
@@ -369,7 +369,7 @@ export default class Xal {
         
             const HttpClient = new Http()
             HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
-                resolve((response.body() as AccessToken))
+                resolve((response.body() as IAccessToken))
 
             }).catch((error) => {
                 reject(error)
@@ -377,8 +377,8 @@ export default class Xal {
         })
     }
 
-    doXstsAuthorization(sisuToken:SisuAuthorizationResponse, relyingParty:string){
-        return new Promise<XstsAuthorizationResponse>((resolve, reject) => {
+    doXstsAuthorization(sisuToken:ISisuAuthorizationResponse, relyingParty:string){
+        return new Promise<IXstsAuthorizationResponse>((resolve, reject) => {
             this.getKeys().then((jwtKeys:any) => {
 
                 const payload = {
@@ -401,7 +401,7 @@ export default class Xal {
             
                 const HttpClient = new Http()
                 HttpClient.postRequest('xsts.auth.xboxlive.com', '/xsts/authorize', headers, body).then((response) => {
-                    resolve(( response.body() as XstsAuthorizationResponse))
+                    resolve(( response.body() as IXstsAuthorizationResponse))
 
                 }).catch((error) => {
                     reject(error)
@@ -411,7 +411,7 @@ export default class Xal {
     }
 
     exchangeRefreshTokenForXcloudTransferToken(refreshToken:string){
-        return new Promise<AccessToken>((resolve, reject) => {
+        return new Promise<IAccessToken>((resolve, reject) => {
             const payload = {
                 client_id: this._app.AppId,
                 grant_type: 'refresh_token',
@@ -430,7 +430,7 @@ export default class Xal {
         
             const HttpClient = new Http()
             HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
-                resolve((response.body() as AccessToken))
+                resolve((response.body() as IAccessToken))
 
             }).catch((error) => {
                 reject(error)
@@ -438,7 +438,7 @@ export default class Xal {
         })
     }
 
-    getStreamToken(xstsToken:XstsAuthorizationResponse, offering:string){
+    getStreamToken(xstsToken:IXstsAuthorizationResponse, offering:string){
         return new Promise<StreamingToken>((resolve, reject) => {
             const payload = {
                 'token': xstsToken.Token,
@@ -455,7 +455,7 @@ export default class Xal {
         
             const HttpClient = new Http()
             HttpClient.postRequest(offering+'.gssv-play-prod.xboxlive.com', '/v2/login/user', headers, body).then((response) => {
-                resolve(new StreamingToken(response.body() as StreamToken))
+                resolve(new StreamingToken(response.body() as IStreamToken))
 
             }).catch((error) => {
                 reject(error)

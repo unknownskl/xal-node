@@ -1,11 +1,13 @@
-import { StreamToken } from '../xal'
+import { IStreamToken } from '../xal'
+import Token from './token'
 
-export default class StreamingToken {
+export default class StreamingToken extends Token {
 
-    public data:StreamToken
+    public data:IStreamToken
     private _objectCreateTime = Date.now()
 
-    constructor(tokenData:StreamToken){
+    constructor(tokenData:IStreamToken){
+        super(tokenData)
         this.data = tokenData
     }
 
