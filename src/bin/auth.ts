@@ -185,6 +185,10 @@ Example commands:
             this._tokenStore.save()
 
             this._xal.getDeviceToken().then((deviceToken) => {
+                if(this._tokenStore._userToken?.data === undefined){
+                    console.log('Failed to refresh user token. Please authenticate again.')
+                    return
+                }
 
                 this._xal.doSisuAuthorization(userToken, deviceToken).then((tokens) => {
                     this._tokenStore.setSisuToken(tokens)
