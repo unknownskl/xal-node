@@ -34,3 +34,31 @@ test('XalAuthenticator should retrieve a authentication URL', async (t) => {
     assert.notDeepStrictEqual(sisuResponse.SessionId, undefined, "SessionId should not be undefined")
     assert.notDeepStrictEqual(sisuResponse.MsaOauthRedirect, undefined, "MsaOauthRedirect should not be undefined")
 });
+
+test('XalAuthenticator refreshUserToken should fail properly', async (t) => {
+    const xal2 = new XalLibrary.Xal()
+
+    try {
+        const derp = await xal2.refreshUserToken('')
+        assert.notDeepStrictEqual(true, true, "refreshUserToken should fail")
+
+    } catch (error) {
+        assert.notDeepStrictEqual(error, undefined, "Error should not be undefined")
+        assert.notDeepStrictEqual(error.expected, true, "refreshUserToken should fail")
+        assert.deepStrictEqual(error.statuscode, 400, "Statuscode should be 400")
+    }
+});
+
+test('XalAuthenticator getStreamToken should fail properly', async (t) => {
+    const xal2 = new XalLibrary.Xal()
+
+    try {
+        const derp = await xal2.getStreamToken('', 'xhome')
+        assert.notDeepStrictEqual(true, true, "getStreamToken should fail")
+
+    } catch (error) {
+        assert.notDeepStrictEqual(error, undefined, "Error should not be undefined")
+        assert.notDeepStrictEqual(error.expected, true, "getStreamToken should fail")
+        assert.deepStrictEqual(error.statuscode, 400, "Statuscode should be 400")
+    }
+});

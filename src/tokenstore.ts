@@ -1,5 +1,4 @@
 import { ISisuAuthorizationResponse, IAccessToken } from './xal'
-import Token from './lib/token'
 import fs from 'fs'
 import SisuToken from './lib/sisutoken'
 import UserToken from './lib/usertoken'
@@ -53,7 +52,7 @@ export default class TokenStore {
         const expireDate = new Date()
         expireDate.setSeconds(expireDate.getSeconds() + userToken.expires_in)
 
-        this._userToken = new Token({ ...userToken, expires_on: expireDate.toISOString() })
+        this._userToken = new UserToken({ ...userToken, expires_on: expireDate.toISOString() })
     }
 
     setSisuToken(sisuToken:ISisuAuthorizationResponse) {

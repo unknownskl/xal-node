@@ -1,1 +1,2 @@
 require('./xalauthenticator')
+require('./tokenstore')
