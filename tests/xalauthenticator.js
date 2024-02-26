@@ -27,7 +27,6 @@ test('XalAuthenticator should retrieve a authentication URL', async (t) => {
     const codeChallange = await xal2.getCodeChallange()
     const state = xal2.getRandomState()
     const sisuResponse = await xal2.doSisuAuthentication(deviceToken, codeChallange, state)
-    // console.log('sisuResponse', sisuResponse, codeChallange)
 
     assert.notDeepStrictEqual(codeChallange.verifier, undefined, "verifier should not be undefined")
     assert.notDeepStrictEqual(state, undefined, "state should not be undefined")
@@ -39,7 +38,7 @@ test('XalAuthenticator refreshUserToken should fail properly', async (t) => {
     const xal2 = new XalLibrary.Xal()
 
     try {
-        const derp = await xal2.refreshUserToken('')
+        await xal2.refreshUserToken('')
         assert.notDeepStrictEqual(true, true, "refreshUserToken should fail")
 
     } catch (error) {
@@ -53,7 +52,7 @@ test('XalAuthenticator getStreamToken should fail properly', async (t) => {
     const xal2 = new XalLibrary.Xal()
 
     try {
-        const derp = await xal2.getStreamToken('', 'xhome')
+        await xal2.getStreamToken('', 'xhome')
         assert.notDeepStrictEqual(true, true, "getStreamToken should fail")
 
     } catch (error) {

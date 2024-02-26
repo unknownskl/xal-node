@@ -24,7 +24,6 @@ test('TokenStore should have a token set when a dummy token is set (user)', (t) 
 test('TokenStore should have a token set when a dummy token is set (user + sisu)', (t) => {
     TokenStore.setUserToken({ data: 'dummyUser', expires_in: 10 })
     TokenStore.setSisuToken({ data: 'dummySisu' })
-    console.log(TokenStore, TokenStore.hasValidAuthTokens())
 
     assert.deepStrictEqual(TokenStore.hasValidAuthTokens(), true, "hasValidAuthTokens should return true")
     assert.notDeepStrictEqual(TokenStore._userToken, undefined, "_userToken should not return undefined")
