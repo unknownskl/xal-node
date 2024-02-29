@@ -178,9 +178,7 @@ Example commands:
             return
         }
 
-        const userToken = this._tokenStore._userToken.data
-
-        this._xal.refreshUserToken(userToken.refresh_token).then((token) => {
+        this._xal.refreshUserToken(this._tokenStore._userToken.data.refresh_token).then((token) => {
             this._tokenStore.setUserToken(token)
             this._tokenStore.save()
 
@@ -190,7 +188,7 @@ Example commands:
                     return
                 }
 
-                this._xal.doSisuAuthorization(userToken, deviceToken).then((tokens) => {
+                this._xal.doSisuAuthorization(this._tokenStore._userToken.data, deviceToken).then((tokens) => {
                     this._tokenStore.setSisuToken(tokens)
                     this._tokenStore.save()
 
