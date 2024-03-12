@@ -4,6 +4,9 @@ const assert = require('node:assert').strict
 const xal = require('../')
 const TokenStore = new xal.TokenStore()
 
+const UserToken = require('../dist/lib/tokens/usertoken').default
+const SisuToken = require('../dist/lib/tokens/sisutoken').default
+
 test('TokenStore should have an handler returned', (t) => {
     assert.notDeepStrictEqual(TokenStore, undefined, "xal.TokenStore should not be undefined")
 });
@@ -13,7 +16,7 @@ test('TokenStore should have default values set when no tokens are present', (t)
 });
 
 test('TokenStore should have a token set when a dummy token is set (user)', (t) => {
-    TokenStore.setUserToken({ data: 'dummy', expires_in: 10 })
+    TokenStore.setUserToken(new UserToken({ data: 'dummy', expires_in: 10 }))
 
     assert.deepStrictEqual(TokenStore.hasValidAuthTokens(), false, "hasValidAuthTokens should return false")
     assert.notDeepStrictEqual(TokenStore._userToken, undefined, "_userToken should not return undefined")
@@ -22,8 +25,8 @@ test('TokenStore should have a token set when a dummy token is set (user)', (t) 
 });
 
 test('TokenStore should have a token set when a dummy token is set (user + sisu)', (t) => {
-    TokenStore.setUserToken({ data: 'dummyUser', expires_in: 10 })
-    TokenStore.setSisuToken({ data: 'dummySisu' })
+    TokenStore.setUserToken(new UserToken({ data: 'dummyUser', expires_in: 10 }))
+    TokenStore.setSisuToken(new SisuToken({ data: 'dummySisu' }))
 
     assert.deepStrictEqual(TokenStore.hasValidAuthTokens(), true, "hasValidAuthTokens should return true")
     assert.notDeepStrictEqual(TokenStore._userToken, undefined, "_userToken should not return undefined")

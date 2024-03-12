@@ -1,7 +1,8 @@
 const test = require('node:test')
 const assert = require('node:assert').strict
 
-const XalLibrary = require('../')
+const XalLibrary = require('../');
+const XstsToken = require('../dist/lib/tokens/xststoken').default
 const xal = new XalLibrary.Xal()
 
 test('XalAuthenticator should have an handler returned', (t) => {
@@ -13,16 +14,16 @@ test('XalAuthenticator should retrieve a deviceToken', async (t) => {
 
     const deviceToken = await xal2.getDeviceToken()
 
-    assert.notDeepStrictEqual(deviceToken.Token, undefined, "Device token should not be undefined")
-    assert.notDeepStrictEqual(deviceToken.DisplayClaims, undefined, "DisplayClaims should not be undefined")
+    assert.notDeepStrictEqual(deviceToken.data.Token, undefined, "Device token should not be undefined")
+    assert.notDeepStrictEqual(deviceToken.data.DisplayClaims, undefined, "DisplayClaims should not be undefined")
 });
 
 test('XalAuthenticator should retrieve a authentication URL', async (t) => {
     const xal2 = new XalLibrary.Xal()
 
     const deviceToken = await xal2.getDeviceToken()
-    assert.notDeepStrictEqual(deviceToken.Token, undefined, "Device token should not be undefined")
-    assert.notDeepStrictEqual(deviceToken.DisplayClaims, undefined, "DisplayClaims should not be undefined")
+    assert.notDeepStrictEqual(deviceToken.data.Token, undefined, "Device token should not be undefined")
+    assert.notDeepStrictEqual(deviceToken.data.DisplayClaims, undefined, "DisplayClaims should not be undefined")
 
     const codeChallange = await xal2.getCodeChallange()
     const state = xal2.getRandomState()
@@ -52,7 +53,7 @@ test('XalAuthenticator getStreamToken should fail properly', async (t) => {
     const xal2 = new XalLibrary.Xal()
 
     try {
-        await xal2.getStreamToken('', 'xhome')
+        await xal2.getStreamToken(new XstsToken({ }), 'xhome')
         assert.notDeepStrictEqual(true, true, "getStreamToken should fail")
 
     } catch (error) {
