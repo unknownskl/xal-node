@@ -1,10 +1,42 @@
-import { ISisuAuthorizationResponse } from "../xal"
-import Token from "./token"
+import Token from '../token'
+
+export interface ISisuToken {
+    DeviceToken: string
+    TitleToken: ISisuTitleToken
+    UserToken: ISisuUserToken
+    AuthorizationToken
+    WebPage: string
+    Sandbox: string
+    UseModernGamertag: boolean
+    Flow: string
+}
+
+interface ISisuUserToken {
+    IssueInstant: string
+    NotAfter: string
+    Token: string
+    DisplayClaims: {
+        xui: {
+            uhs: string
+        }
+    }
+}
+
+interface ISisuTitleToken {
+    IssueInstant: string
+    NotAfter: string
+    Token: string
+    DisplayClaims: {
+        xti: {
+            tid: string
+        }
+    }
+}
 
 export default class SisuToken extends Token {
-    data:ISisuAuthorizationResponse
+    data:ISisuToken
 
-    constructor(data) {
+    constructor(data:ISisuToken) {
         super(data)
         this.data = data
     }

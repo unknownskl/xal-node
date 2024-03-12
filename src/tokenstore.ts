@@ -1,11 +1,6 @@
-import { ISisuAuthorizationResponse, IAccessToken } from './xal'
+import SisuToken from './lib/tokens/sisutoken'
+import UserToken from './lib/tokens/usertoken'
 import fs from 'fs'
-import SisuToken from './lib/sisutoken'
-import UserToken from './lib/usertoken'
-
-export interface IUserToken extends IAccessToken {
-    expires_on:string
-}
 
 export default class TokenStore {
 
@@ -17,14 +12,16 @@ export default class TokenStore {
     _jwtKeys:any
 
     // Sub-Tokens
-    
-
-    load(filepath:string) {
+    load(filepath:string, silent = false) {
         this._filepath = filepath
 
         if(fs.existsSync(filepath)){
             const fileContents = fs.readFileSync(filepath)
             return this.loadJson(fileContents.toString())
+        } else {
+            if(! silent){
+                throw new Error('TokenStore: File not found: ' + filepath)
+            }
         }
 
         return false
@@ -48,15 +45,15 @@ export default class TokenStore {
         return true
     }
 
-    setUserToken(userToken:IAccessToken) {
+    setUserToken(userToken:UserToken) {
         const expireDate = new Date()
-        expireDate.setSeconds(expireDate.getSeconds() + userToken.expires_in)
+        expireDate.setSeconds(expireDate.getSeconds() + userToken.data.expires_in)
 
-        this._userToken = new UserToken({ ...userToken, expires_on: expireDate.toISOString() })
+        this._userToken = new UserToken({ ...userToken.data, expires_on: expireDate.toISOString() })
     }
 
-    setSisuToken(sisuToken:ISisuAuthorizationResponse) {
-        this._sisuToken = new SisuToken(sisuToken)
+    setSisuToken(sisuToken:SisuToken) {
+        this._sisuToken = new SisuToken(sisuToken.data)
     }
 
     setJwtKeys(jwtKeys:any) {

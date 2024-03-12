@@ -1,10 +1,19 @@
-import Token from "./token"
-import { IUserToken } from "../tokenstore"
+import Token from '../token'
+
+export interface IUserToken {
+    token_type: string
+    expires_in: number
+    scope: string
+    access_token: string
+    refresh_token: string
+    user_id: string
+    expires_on: string
+}
 
 export default class UserToken extends Token {
     data:IUserToken
 
-    constructor(data) {
+    constructor(data:IUserToken) {
         super(data)
         this.data = data
     }

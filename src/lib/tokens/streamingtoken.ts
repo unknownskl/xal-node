@@ -1,5 +1,37 @@
-import { IStreamToken } from '../xal'
-import Token from './token'
+import Token from '../token'
+
+export interface IStreamToken {
+    offeringSettings: IOfferingSettings
+    market: string
+    gsToken: string
+    tokenType: string
+    durationInSeconds: number
+}
+  
+export interface IOfferingSettings {
+    allowRegionSelection: boolean
+    regions: IRegion[]
+    selectableServerTypes: any
+    clientCloudSettings: IClientCloudSettings
+}
+
+export interface IRegion {
+    name: string
+    baseUri: string
+    networkTestHostname: string
+    isDefault: boolean
+    systemUpdateGroups: any
+    fallbackPriority: number
+}
+
+export interface IClientCloudSettings {
+    Environments: IEnvironment[]
+}
+
+export interface IEnvironment {
+    Name: string
+    AuthBaseUri?: string
+}  
 
 export default class StreamingToken extends Token {
 

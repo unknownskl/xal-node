@@ -1,42 +1,18 @@
 import Http from './lib/http'
 import crypto, { subtle, KeyObject } from 'crypto'
 import { exportJWK } from 'jose'
-import StreamingToken from './lib/streamingtoken'
+
+import DeviceToken from './lib/tokens/devicetoken'
+import SisuToken, { ISisuToken } from './lib/tokens/sisutoken'
+import UserToken, { IUserToken } from './lib/tokens/usertoken'
+import StreamingToken from './lib/tokens/streamingtoken'
+import XstsToken from './lib/tokens/xststoken'
+import MsalToken from './lib/tokens/msaltoken'
+
+import TokenStore from './tokenstore'
 
 const UUID = require('uuid-1345')
 const nextUUID = () => UUID.v3({ namespace: '6ba7b811-9dad-11d1-80b4-00c04fd430c8', name: Date.now().toString() })
-
-interface ITokenData {
-    IssueInstant: string
-    NotAfter: string
-    Token: string
-    DisplayClaims: any
-}
-
-interface IDeviceToken extends ITokenData {
-    DisplayClaims: {
-        xdi: {
-            did: string
-            dcs: number
-        }
-    }
-}
-
-interface ITitleToken extends ITokenData {
-    DisplayClaims: {
-        xti: {
-            tid: string
-        }
-    }
-}
-
-interface IUserToken extends ITokenData {
-    DisplayClaims: {
-        xui: {
-            uhs: string
-        }
-    }
-}
 
 interface ICodeChallange {
     value: string
@@ -50,67 +26,6 @@ interface ISisuAuthenticationResponse {
     SessionId: string
 }
 
-export interface ISisuAuthorizationResponse {
-    DeviceToken: string
-    TitleToken: ITitleToken
-    UserToken: IUserToken
-    AuthorizationToken
-    WebPage: string
-    Sandbox: string
-    UseModernGamertag: boolean
-    Flow: string
-}
-
-export interface IAccessToken {
-    token_type: string
-    expires_in: number
-    scope: string
-    access_token: string
-    refresh_token: string
-    user_id: string
-}
-
-interface IXstsAuthorizationResponse extends ITokenData {
-    DisplayClaims: {
-        xui: {
-            uhs: string
-        }
-    }
-}
-
-export interface IStreamToken {
-    offeringSettings: IOfferingSettings
-    market: string
-    gsToken: string
-    tokenType: string
-    durationInSeconds: number
-}
-  
-export interface IOfferingSettings {
-    allowRegionSelection: boolean
-    regions: IRegion[]
-    selectableServerTypes: any
-    clientCloudSettings: IClientCloudSettings
-}
-
-export interface IRegion {
-    name: string
-    baseUri: string
-    networkTestHostname: string
-    isDefault: boolean
-    systemUpdateGroups: any
-    fallbackPriority: number
-}
-
-export interface IClientCloudSettings {
-    Environments: IEnvironment[]
-}
-
-export interface IEnvironment {
-    Name: string
-    AuthBaseUri?: string
-}  
-
 export default class Xal {
 
     keys
@@ -120,6 +35,17 @@ export default class Xal {
         AppId: '000000004c20a908', //'000000004c12ae6f', // 0000000048183522 = working, but minecraft --<<< 000000004c12ae6f works, xbox app
         TitleId: '328178078', //'328178078', // 1016898439 = working
         RedirectUri: 'ms-xal-000000004c20a908://auth'
+    }
+
+    constructor(tokenStore?:TokenStore){
+        if(tokenStore && tokenStore._jwtKeys){
+            this.setKeys(tokenStore._jwtKeys.jwt).then((keys) => {
+                // console.log('Keys loaded:', keys)
+            }).catch((error) => {
+                console.log('Failed to load keys:', error)
+            })
+        }
+
     }
 
     setKeys(orgJwtKey){
@@ -204,7 +130,7 @@ export default class Xal {
     }
 
     getDeviceToken() {
-        return new Promise<IDeviceToken>((resolve, reject) => {
+        return new Promise<DeviceToken>((resolve, reject) => {
             this.getKeys().then((jwtKeys:any) => {
                 const payload = {
                     Properties: {
@@ -235,7 +161,7 @@ export default class Xal {
             
                 const HttpClient = new Http()
                 HttpClient.postRequest('device.auth.xboxlive.com', '/device/authenticate', headers, body).then((response) => {
-                    resolve((response.body() as IDeviceToken))
+                    resolve(new DeviceToken(response.body()))
 
                 }).catch((error) => {
                     reject(error)
@@ -244,7 +170,7 @@ export default class Xal {
         })
     }
 
-    doSisuAuthentication(deviceToken:IDeviceToken, codeChallange:ICodeChallange, state){
+    doSisuAuthentication(deviceToken:DeviceToken, codeChallange:ICodeChallange, state){
         return new Promise<ISisuAuthenticationResponse>((resolve, reject) => {
             this.getKeys().then((jwtKeys:any) => {
 
@@ -252,7 +178,7 @@ export default class Xal {
                     AppId: this._app.AppId,
                     TitleId: this._app.TitleId,
                     RedirectUri: this._app.RedirectUri,
-                    DeviceToken: deviceToken.Token,
+                    DeviceToken: deviceToken.data.Token,
                     Sandbox: "RETAIL",
                     TokenType: "code",
                     Offers: ["service::user.auth.xboxlive.com::MBI_SSL"],
@@ -284,14 +210,14 @@ export default class Xal {
         })
     }
 
-    doSisuAuthorization(userToken:IAccessToken, deviceToken:IDeviceToken, SessionId?:string){
-        return new Promise<ISisuAuthorizationResponse>((resolve, reject) => {
+    doSisuAuthorization(userToken:UserToken, deviceToken:DeviceToken, SessionId?:string){
+        return new Promise<SisuToken>((resolve, reject) => {
             this.getKeys().then((jwtKeys:any) => {
 
                 const payload = {
-                    AccessToken: 't='+userToken.access_token,
+                    AccessToken: 't='+userToken.data.access_token,
                     AppId: this._app.AppId,
-                    DeviceToken: deviceToken.Token,
+                    DeviceToken: deviceToken.data.Token,
                     Sandbox: "RETAIL",
                     SiteName: "user.auth.xboxlive.com",
                     UseModernGamertag: true,
@@ -316,7 +242,7 @@ export default class Xal {
             
                 const HttpClient = new Http()
                 HttpClient.postRequest('sisu.xboxlive.com', '/authorize', headers, body).then((response) => {
-                    resolve(( response.body() as ISisuAuthorizationResponse))
+                    resolve(new SisuToken(response.body()))
 
                 }).catch((error) => {
                     reject(error)
@@ -325,8 +251,8 @@ export default class Xal {
         })
     }
 
-    exchangeCodeForToken(code:string, codeVerifier){
-        return new Promise<IAccessToken>((resolve, reject) => {
+    exchangeCodeForToken(code:string, codeVerifier:string){
+        return new Promise<UserToken>((resolve, reject) => {
             const payload = {
                 'client_id': this._app.AppId,
                 'code': code,
@@ -344,7 +270,7 @@ export default class Xal {
         
             const HttpClient = new Http()
             HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
-                resolve((response.body() as IAccessToken))
+                resolve(new UserToken(response.body()))
 
             }).catch((error) => {
                 reject(error)
@@ -353,7 +279,7 @@ export default class Xal {
     }
 
     refreshUserToken(refreshToken:string){
-        return new Promise<IAccessToken>((resolve, reject) => {
+        return new Promise<UserToken>((resolve, reject) => {
             const payload = {
                 'client_id': this._app.AppId,
                 'grant_type': 'refresh_token',
@@ -369,7 +295,7 @@ export default class Xal {
         
             const HttpClient = new Http()
             HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
-                resolve((response.body() as IAccessToken))
+                resolve(new UserToken(response.body()))
 
             }).catch((error) => {
                 reject(error)
@@ -377,16 +303,16 @@ export default class Xal {
         })
     }
 
-    doXstsAuthorization(sisuToken:ISisuAuthorizationResponse, relyingParty:string){
-        return new Promise<IXstsAuthorizationResponse>((resolve, reject) => {
+    doXstsAuthorization(sisuToken:SisuToken, relyingParty:string){
+        return new Promise<XstsToken>((resolve, reject) => {
             this.getKeys().then((jwtKeys:any) => {
 
                 const payload = {
                     Properties: {
                         SandboxId: 'RETAIL',
-                        DeviceToken: sisuToken.DeviceToken,
-                        TitleToken: sisuToken.TitleToken.Token,
-                        UserTokens: [sisuToken.UserToken.Token]
+                        DeviceToken: sisuToken.data.DeviceToken,
+                        TitleToken: sisuToken.data.TitleToken.Token,
+                        UserTokens: [sisuToken.data.UserToken.Token]
                     },
                     RelyingParty: relyingParty,
                     TokenType: 'JWT'
@@ -401,7 +327,7 @@ export default class Xal {
             
                 const HttpClient = new Http()
                 HttpClient.postRequest('xsts.auth.xboxlive.com', '/xsts/authorize', headers, body).then((response) => {
-                    resolve(( response.body() as IXstsAuthorizationResponse))
+                    resolve(new XstsToken(response.body()))
 
                 }).catch((error) => {
                     reject(error)
@@ -410,13 +336,13 @@ export default class Xal {
         })
     }
 
-    exchangeRefreshTokenForXcloudTransferToken(refreshToken:string){
-        return new Promise<IAccessToken>((resolve, reject) => {
+    exchangeRefreshTokenForXcloudTransferToken(userToken:UserToken){
+        return new Promise<MsalToken>((resolve, reject) => {
             const payload = {
                 client_id: this._app.AppId,
                 grant_type: 'refresh_token',
                 scope: 'service::http://Passport.NET/purpose::PURPOSE_XBOX_CLOUD_CONSOLE_TRANSFER_TOKEN',
-                refresh_token: refreshToken,
+                refresh_token: userToken.data.refresh_token,
                 code: '',
                 code_verifier: '',
                 redirect_uri: '',
@@ -430,7 +356,7 @@ export default class Xal {
         
             const HttpClient = new Http()
             HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
-                resolve((response.body() as IAccessToken))
+                resolve(new MsalToken(response.body()))
 
             }).catch((error) => {
                 reject(error)
@@ -438,10 +364,10 @@ export default class Xal {
         })
     }
 
-    getStreamToken(xstsToken:IXstsAuthorizationResponse, offering:string){
+    getStreamToken(xstsToken:XstsToken, offering:string){
         return new Promise<StreamingToken>((resolve, reject) => {
             const payload = {
-                'token': xstsToken.Token,
+                'token': xstsToken.data.Token,
                 'offeringId': offering,
             }
             
@@ -455,7 +381,7 @@ export default class Xal {
         
             const HttpClient = new Http()
             HttpClient.postRequest(offering+'.gssv-play-prod.xboxlive.com', '/v2/login/user', headers, body).then((response) => {
-                resolve(new StreamingToken(response.body() as IStreamToken))
+                resolve(new StreamingToken(response.body()))
 
             }).catch((error) => {
                 reject(error)

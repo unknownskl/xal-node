@@ -61,14 +61,7 @@ Example commands:
         this._tokenStore.load(this._commander.opts().file)
 
         // Load XAL
-        this._xal = new Xal()
-        if(this._tokenStore._jwtKeys){
-            this._xal.setKeys(this._tokenStore._jwtKeys.jwt).then((keys) => {
-                // console.log('Keys loaded:', keys)
-            }).catch((error) => {
-                console.log('Failed to load keys:', error)
-            })
-        }
+        this._xal = new Xal(this._tokenStore)
     }
 
     run(){
@@ -188,7 +181,7 @@ Example commands:
                     return
                 }
 
-                this._xal.doSisuAuthorization(this._tokenStore._userToken.data, deviceToken).then((tokens) => {
+                this._xal.doSisuAuthorization(this._tokenStore._userToken, deviceToken).then((tokens) => {
                     this._tokenStore.setSisuToken(tokens)
                     this._tokenStore.save()
 
@@ -224,10 +217,10 @@ Example commands:
             return
         }
 
-        const xstsToken = await this._xal.doXstsAuthorization(this._tokenStore._sisuToken?.data, 'http://gssv.xboxlive.com/')
+        const xstsToken = await this._xal.doXstsAuthorization(this._tokenStore._sisuToken, 'http://gssv.xboxlive.com/')
 
-        const msalToken = await this._xal.exchangeRefreshTokenForXcloudTransferToken(this._tokenStore._userToken?.data.refresh_token)
-        const webToken = await this._xal.doXstsAuthorization(this._tokenStore._sisuToken?.data, 'http://xboxlive.com/')
+        const msalToken = await this._xal.exchangeRefreshTokenForXcloudTransferToken(this._tokenStore._userToken)
+        const webToken = await this._xal.doXstsAuthorization(this._tokenStore._sisuToken, 'http://xboxlive.com/')
 
         const xhomeToken = await this._xal.getStreamToken(xstsToken, 'xhome')
         let gpuToken;
