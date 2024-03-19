@@ -72,9 +72,9 @@ Example commands:
                 return
             }
 
-            this.getRedirectUri().then((result) => {
-                if(result){
-                    console.log('Please authenticate using the following url:', result.MsaOauthRedirect)
+            this._xal.getRedirectUri().then((redirect) => {
+                if(redirect){
+                    console.log('Please authenticate using the following url:', redirect.sisuAuth.MsaOauthRedirect)
 
                     const readline = require('readline').createInterface({
                         input: process.stdin,
@@ -83,7 +83,14 @@ Example commands:
         
                     readline.question('Enter redirect uri: ', async redirectUri => {
                         readline.close()
-                        await this.loadTokensUsingCode(redirectUri, result.SessionId)
+                        // await this.loadTokensUsingCode(redirectUri, result.SessionId)
+                        const loggedIn = await this._xal.authenticateUser(this._tokenStore, redirect, redirectUri)
+                        if(loggedIn === true){
+                            this._xal.refreshTokens(this._tokenStore)
+                            console.log('Authentication succeeded!')
+                        } else {
+                            console.log('Authentication failed!')
+                        }
                     })
                 }
             }).catch((error) => {
@@ -104,57 +111,6 @@ Example commands:
         }
     }
 
-    async getRedirectUri(){
-        try {
-            this._deviceToken = await this._xal.getDeviceToken()
-
-            const codeChallange = await this._xal.getCodeChallange()
-            this._state = this._xal.getRandomState()
-            const sisu = await this._xal.doSisuAuthentication(this._deviceToken, codeChallange, this._state)
-
-            return sisu
-
-        } catch(error){
-            console.log('Failed to retrieve a device token. Make sure your date and time of your computer is correct and try again.')
-            console.log('Details:', error)
-        }
-
-        return false
-    }
-
-    async loadTokensUsingCode(redirectUri, sisuSessionId){
-        const url = new URL(redirectUri)
-
-        const error = url.searchParams.get('error')
-        if(error){
-            const error_description = url.searchParams.get('error_description')
-            console.log('Authentication failed:', error_description)
-        }
-
-        const code = url.searchParams.get('code')
-        if(code){
-            const state = url.searchParams.get('state')
-
-            if(state != this._state){
-                console.log('Authentication failed: State mismatch')
-                return
-            }
-            const codeChallange = await this._xal.getCodeChallange()
-
-            const userToken = await this._xal.exchangeCodeForToken(code, codeChallange.verifier)
-            const sisuToken = await this._xal.doSisuAuthorization(userToken, this._deviceToken, sisuSessionId)
-
-            // console.log(userToken, sisuToken)
-
-            this._tokenStore.setUserToken(userToken)
-            this._tokenStore.setSisuToken(sisuToken)
-            this._tokenStore.setJwtKeys(this._xal.jwtKeys)
-            this._tokenStore.save()
-
-            console.log('Authentication succeeded! Tokens written to file:', this._tokenStore._filepath)
-        }
-    }
-
     actionShow(){
         
         console.log('Current authentication status:')
@@ -171,26 +127,8 @@ Example commands:
             return
         }
 
-        this._xal.refreshUserToken(this._tokenStore._userToken.data.refresh_token).then((token) => {
-            this._tokenStore.setUserToken(token)
-            this._tokenStore.save()
-
-            this._xal.getDeviceToken().then((deviceToken) => {
-                if(this._tokenStore._userToken?.data === undefined){
-                    console.log('Failed to refresh user token. Please authenticate again.')
-                    return
-                }
-
-                this._xal.doSisuAuthorization(this._tokenStore._userToken, deviceToken).then((tokens) => {
-                    this._tokenStore.setSisuToken(tokens)
-                    this._tokenStore.save()
-
-                    console.log('Tokens have been refreshed')
-
-                }).catch((error) => {
-                    console.log('Failed to refresh sisu token:', error)
-                })
-            })
+        this._xal.refreshTokens(this._tokenStore).then((token) => {
+            console.log('Tokens have been refreshed')
 
         }).catch((error) => {
             console.log('Failed to refresh token:', error)
@@ -204,7 +142,9 @@ Example commands:
 
     actionTokens(){
         this.retrieveTokens().then((tokens) => {
-            //
+
+            console.log('Tokens:\n- MSAL Token:', JSON.stringify(tokens.msalToken, null, 4), '\n- Web Token:', JSON.stringify(tokens.webToken, null, 4))
+            console.log('Offering tokens:\n- xHome:', JSON.stringify(tokens.xhomeToken, null, 4), '\n- xCloud:', JSON.stringify(tokens.gpuToken, null, 4))
         }).catch((error) => {
             console.log('Failed to retrieve tokens:', error)
         })
@@ -212,27 +152,14 @@ Example commands:
     }
 
     async retrieveTokens(){
-        if(this._tokenStore._userToken === undefined || this._tokenStore._sisuToken === undefined){
-            console.log('Please authenticate first using `xbox-auth auth`.')
-            return
-        }
+        const msalToken = await this._xal.getMsalToken(this._tokenStore)
+        const webToken = await this._xal.getWebToken(this._tokenStore)
+        const streamingTokens = await this._xal.getStreamingToken(this._tokenStore)
 
-        const xstsToken = await this._xal.doXstsAuthorization(this._tokenStore._sisuToken, 'http://gssv.xboxlive.com/')
+        const gpuToken = streamingTokens.gpuToken
+        const xhomeToken = streamingTokens.xHomeToken
 
-        const msalToken = await this._xal.exchangeRefreshTokenForXcloudTransferToken(this._tokenStore._userToken)
-        const webToken = await this._xal.doXstsAuthorization(this._tokenStore._sisuToken, 'http://xboxlive.com/')
-
-        const xhomeToken = await this._xal.getStreamToken(xstsToken, 'xhome')
-        let gpuToken;
-        try {
-            gpuToken = await this._xal.getStreamToken(xstsToken, 'xgpuweb')
-        } catch(error){
-            // Retrieving the xgpuweb offering failed, lats try xgpuwebf2p
-            gpuToken = await this._xal.getStreamToken(xstsToken, 'xgpuwebf2p')
-        }
-
-        console.log('Tokens:\n- XSTS Token: ', JSON.stringify(xstsToken, null, 4), '\n- MSAL Token:', JSON.stringify(msalToken, null, 4), '\n- Web Token:', JSON.stringify(webToken, null, 4))
-        console.log('Offering tokens:\n- xHome:', JSON.stringify(xhomeToken, null, 4), '\n- xCloud:', JSON.stringify(gpuToken, null, 4))
+        return { msalToken, webToken, xhomeToken, gpuToken }
     }
 }
 

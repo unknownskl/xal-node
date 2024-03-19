@@ -52,8 +52,16 @@ export default class TokenStore {
         this._userToken = new UserToken({ ...userToken.data, expires_on: expireDate.toISOString() })
     }
 
+    getUserToken() {
+        return this._userToken
+    }
+
     setSisuToken(sisuToken:SisuToken) {
         this._sisuToken = new SisuToken(sisuToken.data)
+    }
+
+    getSisuToken() {
+        return this._sisuToken
     }
 
     setJwtKeys(jwtKeys:any) {

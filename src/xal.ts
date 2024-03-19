@@ -278,12 +278,12 @@ export default class Xal {
         })
     }
 
-    refreshUserToken(refreshToken:string){
+    refreshUserToken(userToken:UserToken){
         return new Promise<UserToken>((resolve, reject) => {
             const payload = {
                 'client_id': this._app.AppId,
                 'grant_type': 'refresh_token',
-                'refresh_token': refreshToken,
+                'refresh_token': userToken.data.refresh_token,
                 'scope': 'service::user.auth.xboxlive.com::MBI_SSL'
             }
             
@@ -427,4 +427,129 @@ export default class Xal {
     
         return header
     }
+
+    // Token retrieval helpers
+    async refreshTokens(tokenStore:TokenStore){
+        const curUserToken = tokenStore.getUserToken()
+        if(curUserToken !== undefined){
+            try {
+                const userToken = await this.refreshUserToken(curUserToken)
+                const deviceToken = await this.getDeviceToken()
+                const sisuToken = await this.doSisuAuthorization(userToken, deviceToken)
+
+                tokenStore.setUserToken(userToken)
+                tokenStore.setSisuToken(sisuToken)
+                tokenStore.save()
+
+                return { userToken, deviceToken, sisuToken }
+            } catch (error) {
+                throw new TokenRefreshError('Failed to refresh tokens: ' + JSON.stringify(error))
+            }
+        } else {
+            return false
+        }
+    }
+
+    async getMsalToken(tokenStore:TokenStore){
+        const userToken = tokenStore.getUserToken()
+        if(userToken !== undefined){
+            return await this.exchangeRefreshTokenForXcloudTransferToken(userToken)
+        } else {
+            return false
+        }
+    
+    }
+
+    async getWebToken(tokenStore:TokenStore){
+        const sisuToken = tokenStore.getSisuToken()
+        if(sisuToken !== undefined){
+            return await this.doXstsAuthorization(sisuToken, 'http://xboxlive.com/')
+        } else {
+            return false
+        }
+    }
+
+    async getStreamingToken(tokenStore:TokenStore){
+        const sisuToken = tokenStore.getSisuToken()
+        if(sisuToken === undefined)
+            throw new Error('Sisu token is missing')
+
+        // if(sisuToken !== undefined){
+            const xstsToken = await this.doXstsAuthorization(sisuToken, 'http://gssv.xboxlive.com/')
+            const xHomeToken = await this.getStreamToken(xstsToken, 'xhome')
+            let gpuToken:StreamingToken;
+            try {
+                gpuToken = await this.getStreamToken(xstsToken, 'xgpuweb')
+            } catch(error){
+                // Retrieving the xgpuweb offering failed, lats try xgpuwebf2p
+                gpuToken = await this.getStreamToken(xstsToken, 'xgpuwebf2p')
+            }
+
+            return { xHomeToken, gpuToken }
+        // } else {
+        //     return false
+        // }
+    }
+
+    async getRedirectUri(){
+        const deviceToken = await this.getDeviceToken()
+        const codeChallange = await this.getCodeChallange()
+        const state = this.getRandomState()
+        const sisuAuth = await this.doSisuAuthentication(deviceToken, codeChallange, state)
+
+        return {
+            sisuAuth,
+            state,
+            codeChallange
+        }
+    }
+
+
+
+    async authenticateUser(tokenStore:TokenStore, redirectObject:{
+        sisuAuth: ISisuAuthenticationResponse;
+        state: string;
+        codeChallange: ICodeChallange;
+    }, redirectUri:string){
+        const url = new URL(redirectUri)
+
+        const error = url.searchParams.get('error')
+        if(error){
+            const error_description = url.searchParams.get('error_description')
+            // console.log('Authentication failed:', error_description)
+            return false
+        }
+
+        const code = url.searchParams.get('code')
+        if(code){
+            const state = url.searchParams.get('state')
+            if(state) {
+                return this.authenticateUserUsingCode(tokenStore, redirectObject, code, state)
+            }
+        }
+
+        return false
+    }
+
+    async authenticateUserUsingCode(tokenStore:TokenStore, redirectObject:{
+        sisuAuth: ISisuAuthenticationResponse;
+        state: string;
+        codeChallange: ICodeChallange;
+    }, code:string, state:string){
+
+        if(state !== redirectObject.state){
+            // console.log('Authentication failed: State mismatch')
+            return false
+        }
+        const codeChallange = await this.getCodeChallange()
+        const userToken = await this.exchangeCodeForToken(code, codeChallange.verifier)
+
+        tokenStore.setUserToken(userToken)
+        tokenStore.setJwtKeys(this.jwtKeys)
+        tokenStore.save()
+
+        return true
+    }
 }
+
+export class TokenRefreshError extends Error {}

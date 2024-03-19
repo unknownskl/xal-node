@@ -2,6 +2,7 @@ const test = require('node:test')
 const assert = require('node:assert').strict
 
 const XalLibrary = require('../');
+const UserToken = require('../dist/lib/tokens/usertoken').default
 const XstsToken = require('../dist/lib/tokens/xststoken').default
 const xal = new XalLibrary.Xal()
 
@@ -39,7 +40,7 @@ test('XalAuthenticator refreshUserToken should fail properly', async (t) => {
     const xal2 = new XalLibrary.Xal()
 
     try {
-        await xal2.refreshUserToken('')
+        await xal2.refreshUserToken(new UserToken({ }))
         assert.notDeepStrictEqual(true, true, "refreshUserToken should fail")
 
     } catch (error) {
