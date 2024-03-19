@@ -431,64 +431,72 @@ export default class Xal {
     // Token retrieval helpers
     async refreshTokens(tokenStore:TokenStore){
         const curUserToken = tokenStore.getUserToken()
-        if(curUserToken !== undefined){
-            try {
-                const userToken = await this.refreshUserToken(curUserToken)
-                const deviceToken = await this.getDeviceToken()
-                const sisuToken = await this.doSisuAuthorization(userToken, deviceToken)
+        if(curUserToken === undefined)
+            throw new Error('User token is missing. Please authenticate first')
 
-                tokenStore.setUserToken(userToken)
-                tokenStore.setSisuToken(sisuToken)
-                tokenStore.save()
+        try {
+            const userToken = await this.refreshUserToken(curUserToken)
+            const deviceToken = await this.getDeviceToken()
+            const sisuToken = await this.doSisuAuthorization(userToken, deviceToken)
 
-                return { userToken, deviceToken, sisuToken }
-            } catch (error) {
-                throw new TokenRefreshError('Failed to refresh tokens: ' + JSON.stringify(error))
-            }
-        } else {
-            return false
+            tokenStore.setUserToken(userToken)
+            tokenStore.setSisuToken(sisuToken)
+            tokenStore.save()
+
+            return { userToken, deviceToken, sisuToken }
+        } catch (error) {
+            throw new TokenRefreshError('Failed to refresh tokens: ' + JSON.stringify(error))
         }
     }
 
     async getMsalToken(tokenStore:TokenStore){
         const userToken = tokenStore.getUserToken()
-        if(userToken !== undefined){
-            return await this.exchangeRefreshTokenForXcloudTransferToken(userToken)
-        } else {
-            return false
-        }
-    
+        if(userToken === undefined)
+            throw new Error('User token is missing. Please authenticate first')
+        
+        return await this.exchangeRefreshTokenForXcloudTransferToken(userToken)    
     }
+
+    _webToken:XstsToken | undefined
 
     async getWebToken(tokenStore:TokenStore){
         const sisuToken = tokenStore.getSisuToken()
-        if(sisuToken !== undefined){
-            return await this.doXstsAuthorization(sisuToken, 'http://xboxlive.com/')
+        if(sisuToken === undefined)
+            throw new Error('Sisu token is missing. Please authenticate first')
+
+        if(this._webToken === undefined || this._webToken.getSecondsValid() <= 60){
+            const token = await this.doXstsAuthorization(sisuToken, 'http://xboxlive.com/')
+            this._webToken = token
+
+            return token
         } else {
-            return false
+            return this._webToken as XstsToken
         }
     }
+
+    _xhomeToken:StreamingToken | undefined
+    _xcloudToken:StreamingToken | undefined
 
     async getStreamingToken(tokenStore:TokenStore){
         const sisuToken = tokenStore.getSisuToken()
         if(sisuToken === undefined)
-            throw new Error('Sisu token is missing')
+            throw new Error('Sisu token is missing. Please authenticate first')
 
-        // if(sisuToken !== undefined){
-            const xstsToken = await this.doXstsAuthorization(sisuToken, 'http://gssv.xboxlive.com/')
-            const xHomeToken = await this.getStreamToken(xstsToken, 'xhome')
-            let gpuToken:StreamingToken;
+        const xstsToken = await this.doXstsAuthorization(sisuToken, 'http://gssv.xboxlive.com/')
+
+        if(this._xhomeToken === undefined || this._xhomeToken.getSecondsValid() <= 60){
+            this._xhomeToken = await this.getStreamToken(xstsToken, 'xhome')
+        }
+
+        if(this._xcloudToken === undefined || this._xcloudToken.getSecondsValid() <= 60){
             try {
-                gpuToken = await this.getStreamToken(xstsToken, 'xgpuweb')
+                this._xcloudToken = await this.getStreamToken(xstsToken, 'xgpuweb')
             } catch(error){
-                // Retrieving the xgpuweb offering failed, lats try xgpuwebf2p
-                gpuToken = await this.getStreamToken(xstsToken, 'xgpuwebf2p')
+                this._xcloudToken = await this.getStreamToken(xstsToken, 'xgpuwebf2p')
             }
+        }
 
-            return { xHomeToken, gpuToken }
-        // } else {
-        //     return false
-        // }
+        return { xHomeToken: this._xhomeToken, xCloudToken: this._xcloudToken }
     }
 
     async getRedirectUri(){
@@ -516,7 +524,6 @@ export default class Xal {
         const error = url.searchParams.get('error')
         if(error){
             const error_description = url.searchParams.get('error_description')
-            // console.log('Authentication failed:', error_description)
             return false
         }
 

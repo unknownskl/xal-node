@@ -156,7 +156,7 @@ Example commands:
         const webToken = await this._xal.getWebToken(this._tokenStore)
         const streamingTokens = await this._xal.getStreamingToken(this._tokenStore)
 
-        const gpuToken = streamingTokens.gpuToken
+        const gpuToken = streamingTokens.xCloudToken
         const xhomeToken = streamingTokens.xHomeToken
 
         return { msalToken, webToken, xhomeToken, gpuToken }
