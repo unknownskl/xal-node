@@ -465,7 +465,7 @@ export default class Xal {
             throw new Error('Sisu token is missing. Please authenticate first')
 
         if(this._webToken === undefined || this._webToken.getSecondsValid() <= 60){
-            const token = await this.doXstsAuthorization(sisuToken, 'http://xboxlive.com/')
+            const token = await this.doXstsAuthorization(sisuToken, 'http://xboxlive.com')
             this._webToken = token
 
             return token
