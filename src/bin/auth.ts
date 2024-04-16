@@ -58,7 +58,7 @@ Example commands:
 
         // Load tokenstore
         this._tokenStore = new TokenStore()
-        this._tokenStore.load(this._commander.opts().file)
+        this._tokenStore.load(this._commander.opts().file, true)
 
         // Load XAL
         this._xal = new Xal(this._tokenStore)
