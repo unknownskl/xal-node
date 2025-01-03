@@ -5,6 +5,8 @@ description: Xal-Node CLI
 
 Xal-Node also offers a CLI application so you can use xal-node to authenticate while you can consume the tokens in your scripts.
 
+### Install
+
 To install the CLI, use the following command:
 
 ```npm install -g xal-node```
@@ -22,3 +24,23 @@ Once the package is installed the application should be available using `xbox-au
 | `xbox-auth logout` | Removes the current stored tokens | 
 
 Once authenticted it will create a new file named `.xbox.tokens.json` which you can use to retrieve the tokens.
+
+## xbox-auth auth
+
+When running the auth command the program will return a url to authenticate with. Once authenticated you will be redirected to a new url with a custom schema protocol. Copy and paste this link back into the input field to authenticate.
+
+## xbox-auth show
+
+The show command will display information about the current token. This includes the User and Sisu tokens. Once both are expired it is still possible to refresh the tokens using the refresh token (which can only be done one.)
+
+## xbox-auth refresh
+
+The refresh command will use the refresh token to refresh the User and Sisu tokens. The command tries to refresh the tokens from the top most available token, till the last option is used to refresh the token.
+
+## xbox-auth tokens
+
+The tokens command will return the tokens data in JSON format. Please note that not all output is json parsable (!)
+
+## xbox-auth logout
+
+The logout command will logout the user and remove the `.xbox.tokens.json` file.
