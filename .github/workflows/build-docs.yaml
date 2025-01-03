@@ -1,4 +1,4 @@
-name: Build/release
+name: Build docs
 
 on:
   push:
@@ -42,10 +42,10 @@ jobs:
         run: npm run build
 
       - name: Upload static files as artifact
-        id: deployment
+        id: deployment-pages
         uses: actions/upload-pages-artifact@v3 # or specific "vX.X.X" version tag for this action
         with:
-          path: build_outputs_folder/
+          path: docs/out/
 
   # Deployment job
   deploy:
@@ -56,5 +56,5 @@ jobs:
     needs: build
     steps:
       - name: Deploy to GitHub Pages
-        id: deployment
+        id: deployment-pages
         uses: actions/deploy-pages@v4
