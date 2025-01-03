@@ -1,0 +1,13 @@
+{
+    "root": true,
+    "pages": [
+      "--- Documentation ---",
+      "index",
+      "test",
+      "...",
+      "!changelogs",
+
+      "--- Changelogs ---",
+      "...changelogs"
+    ]
+  }
