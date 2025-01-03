@@ -1,0 +1,24 @@
+---
+title: CLI
+description: Xal-Node CLI
+---
+
+Xal-Node also offers a CLI application so you can use xal-node to authenticate while you can consume the tokens in your scripts.
+
+To install the CLI, use the following command:
+
+```npm install -g xal-node```
+
+Once the package is installed the application should be available using `xbox-auth`.
+
+### Available commands
+
+| Command | Description |
+|---------|-------------|
+| `xbox-auth auth` | Runs the authentication flow and provides an URL to login to. |
+| `xbox-auth show` | Shows the current status of the tokens and if they are expired or not. |
+| `xbox-auth refresh` | Refreshes the current stored tokens to new up to date tokens without running the full flow again. |
+| `xbox-auth tokens` | Fetches all tokens for use with xCloud and xHome |
+| `xbox-auth logout` | Removes the current stored tokens | 
+
+Once authenticted it will create a new file named `.xbox.tokens.json` which you can use to retrieve the tokens.

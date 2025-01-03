@@ -3,11 +3,11 @@
     "pages": [
       "--- Documentation ---",
       "index",
+      "cli",
       "test",
       "...",
-      "!changelogs",
 
       "--- Changelogs ---",
       "...changelogs"
     ]
-  }
+}

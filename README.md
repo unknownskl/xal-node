@@ -2,6 +2,8 @@
 
 **xal-node:** Typescript implementation for Xbox Authentication Library (XAL)
 
+📚 Documentation: [https://unknownskl.github.io/xal-node/](https://unknownskl.github.io/xal-node/)
+
 ## Installing xal-node
 
 You can install the project with npm. In the project directory, run:
