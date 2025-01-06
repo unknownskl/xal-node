@@ -15,7 +15,7 @@
   "author": "UnknownSKL <info@jimkroon.nl>",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.8.2",
+    "@types/node": "^22.10.5",
     "typescript": "^5.2.2"
   },
   "repository": {
