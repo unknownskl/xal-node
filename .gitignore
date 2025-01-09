@@ -11,6 +11,8 @@ dist/
 .content-collections
 .source
 out/
+docs/content/docs/api/*.mdx
+!docs/content/docs/api/*.model.mdx
 
 # test & build
 docs/coverage

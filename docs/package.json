@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "next build",
-    "dev": "next dev",
+    "build": "node api-build.mjs && next build",
+    "dev": "node api-build.mjs && next dev",
     "start": "next start",
     "postinstall": "fumadocs-mdx"
   },
