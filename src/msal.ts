@@ -1,13 +1,21 @@
 import Http from './lib/http'
 import crypto, { subtle, KeyObject } from 'crypto'
 import XstsToken from './lib/tokens/xststoken'
+import UserToken from './lib/tokens/usertoken'
 import StreamingToken from './lib/tokens/streamingtoken'
+import TokenStore from './tokenstore'
 
 export default class Msal {
 
+    private _tokenStore:TokenStore
     private _clientId = '1f907974-e22b-4810-a9de-d9647380c97e'
 
-    _refreshToken = ''
+    private _xstsToken:XstsToken | undefined
+    private _gssvToken:XstsToken | undefined
+
+    constructor(tokenStore:TokenStore){
+        this._tokenStore = tokenStore
+    }
 
     doDeviceCodeAuth(){
         return new Promise((resolve, reject) => {
@@ -32,7 +40,10 @@ export default class Msal {
             }, "grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id="+this._clientId+"&device_code="+deviceCode
             ).then((response) => {
                 const body = response.body()
-                this._refreshToken = body.refresh_token
+                const userToken = new UserToken(body)
+
+                this._tokenStore.setUserToken(userToken)
+                this._tokenStore.save()
                 resolve(body)
 
             }).catch((error) => {
@@ -47,16 +58,21 @@ export default class Msal {
         });
     }
 
-    exchangeDeviceCodeForMSAL(){
+    getMsalToken(){
         return new Promise((resolve, reject) => {
             const HttpClient = new Http()
+            const refreshToken = this._tokenStore.getUserToken()?.data.refresh_token
+
+            if(refreshToken === undefined){
+                reject('No refresh token found. Please authenticate first.')
+                return
+            }
 
             HttpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/token', {
                 "Content-Type": "application/x-www-form-urlencoded"
-            }, "client_id="+this._clientId+"&scope=service::http://Passport.NET/purpose::PURPOSE_XBOX_CLOUD_CONSOLE_TRANSFER_TOKEN%20openid%20profile%20offline_access&grant_type=refresh_token&refresh_token="+this._refreshToken
+            }, "client_id="+this._clientId+"&scope=service::http://Passport.NET/purpose::PURPOSE_XBOX_CLOUD_CONSOLE_TRANSFER_TOKEN%20openid%20profile%20offline_access&grant_type=refresh_token&refresh_token="+refreshToken
             ).then((response) => {
                 const body = response.body()
-                this._refreshToken = body.refresh_token
                 resolve(body)
 
             }).catch((error) => {
@@ -104,8 +120,15 @@ export default class Msal {
         })
     }
 
-    refreshUserToken(refreshToken:string){
+    refreshUserToken(){
         return new Promise((resolve, reject) => {
+            const refreshToken = this._tokenStore.getUserToken()?.data.refresh_token
+
+            if(refreshToken === undefined){
+                reject('No refresh token found. Please authenticate first.')
+                return
+            }
+
             const payload = {
                 'client_id': this._clientId,
                 'grant_type': 'refresh_token',
@@ -121,16 +144,31 @@ export default class Msal {
         
             const HttpClient = new Http()
             HttpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/token', headers, body).then((response) => {
-                resolve(response.body())
+
+                const userTokenBody = response.body()
+                const userToken = new UserToken(userTokenBody)
+
+                this._tokenStore.setUserToken(userToken)
+                this._tokenStore.save()
+
+                resolve(userToken)
 
             }).catch((error) => {
+                // @TODO: Implement TokenRefreshError to let the user know to login again.
                 reject(error)
             })
         })
     }
 
-    doXstsAuthentication(userToken:string){
+    doXstsAuthentication(){
         return new Promise<XstsToken>((resolve, reject) => {
+            const userToken = this._tokenStore.getUserToken()?.data.access_token
+
+            if(userToken === undefined){
+                reject('No user token found. Please authenticate first.')
+                return
+            }
+
             const payload = {
                 Properties: {
                     AuthMethod: 'RPS',
@@ -152,7 +190,8 @@ export default class Msal {
         
             const HttpClient = new Http()
             HttpClient.postRequest('user.auth.xboxlive.com', '/user/authenticate', headers, body).then((response) => {
-                resolve(new XstsToken(response.body()))
+                this._xstsToken = new XstsToken(response.body())
+                resolve(this._xstsToken)
 
             }).catch((error) => {
                 reject(error)
@@ -160,35 +199,55 @@ export default class Msal {
         })
     }
 
-    async getWebToken(userToken:string){
+    async getWebToken(){
+        if(this._xstsToken === undefined || this._xstsToken.getSecondsValid() <= 60)
+            await this.doXstsAuthentication()
+
+        const userToken = this._xstsToken?.data.Token
+
+        if(userToken === undefined){
+            throw new Error('No user token found. Please authenticate first.')
+        }
+
         const token = await this.doXstsAuthorization(userToken, 'http://xboxlive.com')
         return token
     }
 
-    async getGssvToken(userToken:string){
-        const token = await this.doXstsAuthorization(userToken, 'http://gssv.xboxlive.com/')
-        return token
+    async getGssvToken(){
+        if(this._xstsToken === undefined || this._xstsToken.getSecondsValid() <= 60)
+            await this.doXstsAuthentication()
+
+        const userToken = this._xstsToken?.data.Token
+
+        if(userToken === undefined){
+            throw new Error('No user token found. Please authenticate first.')
+        }
+
+        if(this._gssvToken === undefined || this._gssvToken.getSecondsValid() <= 60){
+
+            const token = await this.doXstsAuthorization(userToken, 'http://gssv.xboxlive.com/')
+            this._gssvToken = token
+        }
+
+        return this._gssvToken
     }
 
-    async getStreamingTokens(userToken:string){
-        // const sisuToken = tokenStore.getSisuToken()
-        // if(sisuToken === undefined)
-        //     throw new Error('Sisu token is missing. Please authenticate first')
+    async getStreamingTokens(){
 
-        // const xstsToken = await this.doXstsAuthorization(sisuToken, 'http://gssv.xboxlive.com/')
+        const gssvToken = await this.getGssvToken()
 
-        // if(this._xhomeToken === undefined || this._xhomeToken.getSecondsValid() <= 60){
-            const _xhomeToken = await this.getStreamToken(userToken, 'xhome')
-        // }
+        if(gssvToken === undefined){
+            throw new Error('No gssv token found. Please authenticate first.')
+        }
 
-        // if(this._xcloudToken === undefined || this._xcloudToken.getSecondsValid() <= 60){
+        const _xhomeToken = await this.getStreamToken(gssvToken.data.Token, 'xhome')
+
         let _xcloudToken:StreamingToken
         try {
-            _xcloudToken = await this.getStreamToken(userToken, 'xgpuweb')
+            _xcloudToken = await this.getStreamToken(gssvToken.data.Token, 'xgpuweb')
         } catch(error){
-            _xcloudToken = await this.getStreamToken(userToken, 'xgpuwebf2p')
+            _xcloudToken = await this.getStreamToken(gssvToken.data.Token, 'xgpuwebf2p')
         }
-        // }
 
         return { xHomeToken: _xhomeToken, xCloudToken: _xcloudToken }
     }

@@ -6,12 +6,20 @@ export interface IUserToken {
     scope: string
     access_token: string
     refresh_token: string
-    user_id: string
-    expires_on: string
+
+    // xal
+    user_id?: string
+    expires_on?: string
+
+    // msal
+    ext_expires_in?: number
+    id_token?: string
+
 }
 
 export default class UserToken extends Token {
     data:IUserToken
+    private _objectCreateTime = Date.now()
 
     constructor(data:IUserToken) {
         super(data)
@@ -25,11 +33,24 @@ export default class UserToken extends Token {
     }
 
     getSecondsValid(){
-        return this.calculateSecondsLeft(new Date(this.data.expires_on))
+        if(this.data.id_token)
+            return 60
+
+        if(this.data.expires_on)
+            return this.calculateSecondsLeft(new Date(this.data.expires_on))
+        
+        return -1
     }
 
     isValid(){
-        const secondsLeft = this.calculateSecondsLeft(new Date(this.data.expires_on))
-        return secondsLeft > 0
+        if(this.data.id_token)
+            return true
+
+        if(this.data.expires_on){
+            const secondsLeft = this.calculateSecondsLeft(new Date(this.data.expires_on))
+            return secondsLeft > 0
+        }
+
+        return false
     }
 }
