@@ -1,10 +1,18 @@
 import Http from './lib/http'
-import crypto, { subtle, KeyObject } from 'crypto'
 import XstsToken from './lib/tokens/xststoken'
 import UserToken from './lib/tokens/usertoken'
 import StreamingToken from './lib/tokens/streamingtoken'
 import TokenStore from './tokenstore'
 import MsalToken from './lib/tokens/msaltoken'
+
+interface IDeviceCodeAuth {
+    user_code: string
+    device_code: string
+    verification_uri: string
+    expires_in: number
+    interval: number
+    message: string
+}
 
 export default class Msal {
 
@@ -14,12 +22,17 @@ export default class Msal {
     private _xstsToken:XstsToken | undefined
     private _gssvToken:XstsToken | undefined
 
+
+    
     constructor(tokenStore:TokenStore){
         this._tokenStore = tokenStore
     }
 
+    /**
+     * Creates a new device code authentication request.
+     */
     doDeviceCodeAuth(){
-        return new Promise((resolve, reject) => {
+        return new Promise<IDeviceCodeAuth>((resolve, reject) => {
             const HttpClient = new Http()
                 HttpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/devicecode', {
                     "Content-Type": "application/x-www-form-urlencoded"
@@ -32,6 +45,9 @@ export default class Msal {
         })
     }
 
+    /**
+     * Keeps polling for authentication changes. The promise will be fullfilled once the user has authenticated.
+     */
     doPollForDeviceCodeAuth(deviceCode:string){
         return new Promise((resolve, reject) => {
             const HttpClient = new Http()

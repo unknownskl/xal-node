@@ -3,10 +3,6 @@ title: MSAL API
 description: Xal-Node API for MSAL authentication
 ---
 
-<Callout title="Updates expected in the future" type="warn">
-  Updates are planned in the future to improve the user experience while using the library.
-</Callout>
-
 ### Load the library
 
 ```js
@@ -30,7 +26,7 @@ this._msal.doDeviceCodeAuth().then((deviceCodeDetails:any) => {
 
     this._msal.doPollForDeviceCodeAuth(deviceCodeDetails.device_code).then((tokens:any) => {
 
-            console.log('User token', tokens) // Save this token for later use to persist logins.
+            console.log('User token', tokens) // This token will be automatically saved in the TokenStore
 
     }).catch((error:any) => {
             console.log('Failed to retrieve user token', error)
@@ -51,19 +47,6 @@ this._msal.refreshUserToken().then((tokens:any) => {
     } else {
         console.error('refreshTokens Error:', err)
     }
-})
-```
-
-
-## Exchange user token for a XSTS token
-
-The XSTS token is the users session token. Use this token for the current user session.
-
-```js
-this._msal.doXstsAuthentication().then((xstsToken) => {
-    console.log('xstsToken', xstsToken)
-}).catch((error:any) => {
-        console.log('Failed to request XSTS token', error)
 })
 ```
 
