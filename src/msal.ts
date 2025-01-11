@@ -4,6 +4,7 @@ import XstsToken from './lib/tokens/xststoken'
 import UserToken from './lib/tokens/usertoken'
 import StreamingToken from './lib/tokens/streamingtoken'
 import TokenStore from './tokenstore'
+import MsalToken from './lib/tokens/msaltoken'
 
 export default class Msal {
 
@@ -59,7 +60,7 @@ export default class Msal {
     }
 
     getMsalToken(){
-        return new Promise((resolve, reject) => {
+        return new Promise<MsalToken>((resolve, reject) => {
             const HttpClient = new Http()
             const refreshToken = this._tokenStore.getUserToken()?.data.refresh_token
 
@@ -68,12 +69,20 @@ export default class Msal {
                 return
             }
 
-            HttpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/token', {
+            // HttpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/token', {
+            HttpClient.postRequest('login.live.com', '/oauth20_token.srf', {
                 "Content-Type": "application/x-www-form-urlencoded"
-            }, "client_id="+this._clientId+"&scope=service::http://Passport.NET/purpose::PURPOSE_XBOX_CLOUD_CONSOLE_TRANSFER_TOKEN%20openid%20profile%20offline_access&grant_type=refresh_token&refresh_token="+refreshToken
+            }, "client_id="+this._clientId+"&scope=service::http://Passport.NET/purpose::PURPOSE_XBOX_CLOUD_CONSOLE_TRANSFER_TOKEN&grant_type=refresh_token&refresh_token="+refreshToken
             ).then((response) => {
                 const body = response.body()
-                resolve(body)
+
+                const msalToken = new MsalToken({
+                    lpt: body.access_token,
+                    refresh_token: body.refresh_token,
+                    user_id: body.user_id,
+                })
+
+                resolve(msalToken)
 
             }).catch((error) => {
                 reject(error)

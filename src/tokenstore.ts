@@ -103,10 +103,10 @@ export default class TokenStore {
     }
 
     getAuthenticationMethod():'xal'|'msal'|'none' {
-        if(this._userToken){
-            return 'msal'
-        } else if(this._sisuToken){
+        if(this._sisuToken){
             return 'xal'
+        } else if(this._userToken){
+            return 'msal'
         } else {
             return 'none'
         }

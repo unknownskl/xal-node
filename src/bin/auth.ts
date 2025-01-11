@@ -3,6 +3,7 @@ import { Argument, Option, program } from 'commander'
 const pkg = require('../../package.json')
 
 import Xal from '../xal'
+import Msal from '../msal'
 import TokenStore from '../tokenstore'
 
 class Auth {
@@ -11,6 +12,11 @@ class Auth {
             default: '.xbox.tokens.json',
             description: 'Load a different token file',
             name: '-F, --file <path>',
+        },
+        auth: {
+            default: 'xal',
+            description: 'Choose authentication method. (choices: xal, msal)',
+            name: '-a, --auth <xal|msal>',
         },
 
         // output: {
@@ -24,6 +30,7 @@ class Auth {
     _commander:typeof program
     _tokenStore:TokenStore
     _xal:Xal
+    _msal:Msal
 
     _state
     _deviceToken
@@ -62,6 +69,7 @@ Example commands:
 
         // Load XAL
         this._xal = new Xal(this._tokenStore)
+        this._msal = new Msal(this._tokenStore)
     }
 
     run(){
@@ -72,30 +80,59 @@ Example commands:
                 return
             }
 
-            this._xal.getRedirectUri().then((redirect) => {
-                if(redirect){
-                    console.log('Please authenticate using the following url:', redirect.sisuAuth.MsaOauthRedirect)
+            if(this._commander.opts().auth === 'xal'){
+                console.log('Starting authentiction using XAL method...')
 
-                    const readline = require('readline').createInterface({
-                        input: process.stdin,
-                        output: process.stdout
-                    });
-        
-                    readline.question('Enter redirect uri: ', async redirectUri => {
-                        readline.close()
-                        // await this.loadTokensUsingCode(redirectUri, result.SessionId)
-                        const loggedIn = await this._xal.authenticateUser(this._tokenStore, redirect, redirectUri)
-                        if(loggedIn === true){
-                            this._xal.refreshTokens(this._tokenStore)
+                this._xal.getRedirectUri().then((redirect) => {
+                    if(redirect){
+                        console.log('Please authenticate using the following url:', redirect.sisuAuth.MsaOauthRedirect)
+
+                        const readline = require('readline').createInterface({
+                            input: process.stdin,
+                            output: process.stdout
+                        });
+            
+                        readline.question('Enter redirect uri: ', async redirectUri => {
+                            readline.close()
+                            // await this.loadTokensUsingCode(redirectUri, result.SessionId)
+                            const loggedIn = await this._xal.authenticateUser(this._tokenStore, redirect, redirectUri)
+                            if(loggedIn === true){
+                                this._xal.refreshTokens(this._tokenStore)
+                                console.log('Authentication succeeded!')
+                            } else {
+                                console.log('Authentication failed!')
+                            }
+                        })
+                    }
+                }).catch((error) => {
+                    console.log('error', error)
+                })
+
+            } else if(this._commander.opts().auth === 'msal'){
+                console.log('Starting authentiction using MSAL method...')
+
+                this._msal.doDeviceCodeAuth().then((deviceCodeDetails:any) => {
+                    if(deviceCodeDetails){
+                        console.log('Please follow the instructions below:')
+                        console.log(deviceCodeDetails.message)
+
+                        this._msal.doPollForDeviceCodeAuth(deviceCodeDetails.device_code).then((tokens:any) => {
                             console.log('Authentication succeeded!')
-                        } else {
-                            console.log('Authentication failed!')
-                        }
-                    })
-                }
-            }).catch((error) => {
-                console.log('error', error)
-            })
+
+                            this._msal.refreshUserToken().then((tokens:any) => {
+                                console.log('Tokens:', tokens)
+                            }).catch((error) => {
+                                console.log('Failed to refresh token:', error)
+                            })
+                        })
+                    }
+                }).catch((error) => {
+                    console.log('error', error)
+                })
+
+            } else {
+                console.log('Unknown authentication method:', this._commander.opts().auth)
+            }
 
         } else if(this._commander.args[0] == 'show'){
             this.actionShow()
@@ -114,25 +151,37 @@ Example commands:
     actionShow(){
         
         console.log('Current authentication status:')
+        console.log(' Authentication method:', this._tokenStore.getAuthenticationMethod().toUpperCase())
         console.log(' UserToken: isAuthenticated('+this._tokenStore._userToken?.isValid()+') Seconds remaining:', this._tokenStore._userToken?.getSecondsValid())
-        console.log(' SisuToken: isAuthenticated('+this._tokenStore._sisuToken?.isValid()+') Seconds remaining:', this._tokenStore._sisuToken?.getSecondsValid())
-        console.log(' ')
-        console.log(' User Hash:', this._tokenStore._sisuToken?.getUserHash())
-        console.log(' Gamertag:', this._tokenStore._sisuToken?.getGamertag())
+
+        if(this._tokenStore.getAuthenticationMethod() === 'xal'){
+            console.log(' SisuToken: isAuthenticated('+this._tokenStore._sisuToken?.isValid()+') Seconds remaining:', this._tokenStore._sisuToken?.getSecondsValid())
+            console.log(' ')
+            console.log(' User Hash:', this._tokenStore._sisuToken?.getUserHash())
+            console.log(' Gamertag:', this._tokenStore._sisuToken?.getGamertag())
+        }
     }
 
     actionRefresh(){
-        if(this._tokenStore._userToken === undefined){
+        if(this._tokenStore.getUserToken() === undefined){
             console.log('Please authenticate first using `xbox-auth auth`.')
             return
         }
 
-        this._xal.refreshTokens(this._tokenStore).then((token) => {
+        let refreshMethod:Promise<any>
+        if(this._tokenStore.getAuthenticationMethod() === 'msal'){
+            refreshMethod = this._msal.refreshUserToken()
+        } else {
+            refreshMethod = this._xal.refreshTokens(this._tokenStore)
+        }
+
+        refreshMethod.then((token) => {
             console.log('Tokens have been refreshed')
 
         }).catch((error) => {
             console.log('Failed to refresh token:', error)
         })
+
     }
 
     actionLogout(){
@@ -152,9 +201,19 @@ Example commands:
     }
 
     async retrieveTokens(){
-        const msalToken = await this._xal.getMsalToken(this._tokenStore)
-        const webToken = await this._xal.getWebToken(this._tokenStore)
-        const streamingTokens = await this._xal.getStreamingToken(this._tokenStore)
+        let msalToken
+        let webToken
+        let streamingTokens
+        
+        if(this._tokenStore.getAuthenticationMethod() === 'msal'){
+            msalToken = await this._msal.getMsalToken()
+            webToken = await this._msal.getWebToken()
+            streamingTokens = await this._msal.getStreamingTokens()
+        } else {
+            msalToken = await this._xal.getMsalToken(this._tokenStore)
+            webToken = await this._xal.getWebToken(this._tokenStore)
+            streamingTokens = await this._xal.getStreamingToken(this._tokenStore)
+        }
 
         const gpuToken = streamingTokens.xCloudToken
         const xhomeToken = streamingTokens.xHomeToken
