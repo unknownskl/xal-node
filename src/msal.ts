@@ -15,9 +15,6 @@ export default class Msal {
                 HttpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/devicecode', {
                     "Content-Type": "application/x-www-form-urlencoded"
                 }, "client_id="+this._clientId+"&scope=xboxlive.signin%20openid%20profile%20offline_access").then((response) => {
-                    // Add SessionId to response object
-                    // const resBody = { SessionId: response.headers['x-sessionid'], ...response.body() }
-                    // resolve(( resBody as ISisuAuthenticationResponse))
                     resolve(response.body())
 
                 }).catch((error) => {
@@ -34,9 +31,6 @@ export default class Msal {
                 "Content-Type": "application/x-www-form-urlencoded"
             }, "grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id="+this._clientId+"&device_code="+deviceCode
             ).then((response) => {
-                // Add SessionId to response object
-                // const resBody = { SessionId: response.headers['x-sessionid'], ...response.body() }
-                // resolve(( resBody as ISisuAuthenticationResponse))
                 const body = response.body()
                 this._refreshToken = body.refresh_token
                 resolve(body)
@@ -59,27 +53,20 @@ export default class Msal {
 
             HttpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/token', {
                 "Content-Type": "application/x-www-form-urlencoded"
-            }, "client_id=1f907974-e22b-4810-a9de-d9647380c97e&scope=service::http://Passport.NET/purpose::PURPOSE_XBOX_CLOUD_CONSOLE_TRANSFER_TOKEN%20openid%20profile%20offline_access&grant_type=refresh_token&refresh_token="+this._refreshToken
+            }, "client_id="+this._clientId+"&scope=service::http://Passport.NET/purpose::PURPOSE_XBOX_CLOUD_CONSOLE_TRANSFER_TOKEN%20openid%20profile%20offline_access&grant_type=refresh_token&refresh_token="+this._refreshToken
             ).then((response) => {
-                // Add SessionId to response object
-                // const resBody = { SessionId: response.headers['x-sessionid'], ...response.body() }
-                // resolve(( resBody as ISisuAuthenticationResponse))
                 const body = response.body()
                 this._refreshToken = body.refresh_token
                 resolve(body)
 
             }).catch((error) => {
-                // this.doPollForDeviceCodeAuth(deviceCode).then((response) => {
-                //     resolve(response)
-                // }).catch((error) => {
-                    reject(error)
-                // })
+                reject(error)
             })
         });
     }
 
     doXstsAuthorization(userToken:string, relyingParty:string){
-        // Poosible relyingParty values:
+        // Possible relyingParty values:
         // - http://xboxlive.com
         // - http://mp.xboxlive.com/
         // - http://gssv.xboxlive.com/
@@ -161,10 +148,6 @@ export default class Msal {
                 'Content-Type': 'application/json',
                 'Origin': 'https://www.xbox.com',
                 'Referer': 'https://www.xbox.com/',
-                // 'Content-Length': body.length,
-                // 'Accept': '*/*',
-                // 'ms-cv': '0',
-                // 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
             }
         
             const HttpClient = new Http()

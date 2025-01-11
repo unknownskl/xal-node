@@ -5,7 +5,7 @@
   "main": "dist/lib.js",
   "scripts": {
     "build": "rm -rf dist/ && tsc && chmod +x dist/bin/auth.js",
-    "test": "node tests/index.js",
+    "test": "tsc && node tests/index.js",
     "auth": "tsc && node dist/bin/auth.js",
     "testbin": "tsc && node dist/bin/test.js",
     "run": "tsc && node dist/bin/auth.js"

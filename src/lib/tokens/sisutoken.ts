@@ -42,24 +42,24 @@ export default class SisuToken extends Token {
     }
 
     getSecondsValid(){
-        const secondsLeftTitle = this.calculateSecondsLeft(new Date(this.data.TitleToken.NotAfter))
-        const secondsLeftUser = this.calculateSecondsLeft(new Date(this.data.UserToken.NotAfter))
-        const secondsLeftAuthorization = this.calculateSecondsLeft(new Date(this.data.AuthorizationToken.NotAfter))
+        const secondsLeftTitle = this.calculateSecondsLeft(new Date(this.data.TitleToken?.NotAfter || 0))
+        const secondsLeftUser = this.calculateSecondsLeft(new Date(this.data.UserToken?.NotAfter || 0))
+        const secondsLeftAuthorization = this.calculateSecondsLeft(new Date(this.data.AuthorizationToken?.NotAfter || 0))
         return Math.min(secondsLeftTitle, secondsLeftUser, secondsLeftAuthorization)
     }
 
     isValid(){
-        const secondsLeftTitle = this.calculateSecondsLeft(new Date(this.data.TitleToken.NotAfter))
+        const secondsLeftTitle = this.calculateSecondsLeft(new Date(this.data.TitleToken?.NotAfter || 0))
         if(secondsLeftTitle <= 0){
             return false
         }
 
-        const secondsLeftUser = this.calculateSecondsLeft(new Date(this.data.UserToken.NotAfter))
+        const secondsLeftUser = this.calculateSecondsLeft(new Date(this.data.UserToken?.NotAfter || 0))
         if(secondsLeftUser <= 0){
             return false
         }
 
-        const secondsLeftAuthorization = this.calculateSecondsLeft(new Date(this.data.AuthorizationToken.NotAfter))
+        const secondsLeftAuthorization = this.calculateSecondsLeft(new Date(this.data.AuthorizationToken?.NotAfter || 0))
         if(secondsLeftAuthorization <= 0){
             return false
         }

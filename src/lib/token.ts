@@ -8,7 +8,7 @@ export default class Token {
     calculateSecondsLeft(date:Date){
         const expiresOn = date
         const currentDate = new Date()
-        return Math.floor((expiresOn.getTime() - currentDate.getTime()) / 1000)
+        return Math.floor(((expiresOn.getTime() || 0) - currentDate.getTime()) / 1000)
     }
 
     getSecondsValid(){

@@ -24,7 +24,6 @@ export default class DeviceToken extends Token {
     }
 
     isValid(){
-
         if(this.calculateSecondsLeft(new Date(this.data.NotAfter)) <= 0){
             return false
         }
