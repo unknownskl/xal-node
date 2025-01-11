@@ -7,6 +7,11 @@ description: Xal-Node TokenStore
 
 The purpose of the Tokenstore is to handle the metadata and expiration of the Tokens. It also makes sure the tokens gets saved and loaded properly when loading and unloading the classes.
 
+## Loading and unloading data
+
+The TokenStore class does not load the data when the class has been created. You will need to handle loading and unloading the data yourself if you incorporate the TokenClass in your code.
+The Xal and MSAL libraries have been adopted to load and save the data when needed. You will not need to do this manually.
+
 ## Extending the TokenStore
 
 If you want to save the token data in your own storage method then you can extend the `TokenStore` class. See the example code below:

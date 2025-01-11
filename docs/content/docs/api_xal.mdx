@@ -1,7 +1,11 @@
 ---
-title: API
-description: Xal-Node API
+title: XAL API
+description: Xal-Node API for Xal Authentication
 ---
+
+<Callout title="Updates expected in the future" type="warn">
+  Updates are planned in the future to improve the user experience while using the library.
+</Callout>
 
 ### Load the library
 
@@ -12,9 +16,11 @@ import { Xal, TokenStore } from 'xal-node'
 this._tokenStore = new TokenStore()
 this._tokenStore.load('.xbox.tokens.json') // File will be saved in the current working directory when using relative paths
 
-// Setup Xal
-this._xal = new Xal(this._tokenStore)
+// Setup Msal
+this._xal = new Msal(this._tokenStore)
 ```
+
+
 
 ## Performing authentication
 

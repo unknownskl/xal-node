@@ -5,6 +5,10 @@ description: Xal-Node CLI
 
 Xal-Node also offers a CLI application so you can use xal-node to authenticate while you can consume the tokens in your scripts.
 
+<Callout title="Updates expected in the future" type="warn">
+  Updates are planned in the future to support better integration with external applications. This will include JSON output and other quality of life improvements.
+</Callout>
+
 ### Install
 
 To install the CLI, use the following command:
@@ -23,11 +27,19 @@ Once the package is installed the application should be available using `xbox-au
 | `xbox-auth tokens` | Fetches all tokens for use with xCloud and xHome |
 | `xbox-auth logout` | Removes the current stored tokens | 
 
+| Argument | Description | Default value |
+|----------|-------------|---------|
+| -f \<file\>, --file \<file\> | Sets the tokenstore file to store and persist the authentication tokens | .xbox.tokens.json |
+
 Once authenticted it will create a new file named `.xbox.tokens.json` which you can use to retrieve the tokens.
 
 ## xbox-auth auth
 
 When running the auth command the program will return a url to authenticate with. Once authenticated you will be redirected to a new url with a custom schema protocol. Copy and paste this link back into the input field to authenticate.
+
+| Argument | Description | Default value |
+|----------|-------------|---------|
+| -a \<method\>, --auth \<method\> | Choose the authentication method when authenticating | xal |
 
 ## xbox-auth show
 
