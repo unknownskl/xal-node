@@ -5,6 +5,7 @@ index.node
 npm-debug.log*
 dist/
 .xbox.tokens.json
+.xbox.tokens*.json
 
 # generated content
 .contentlayer

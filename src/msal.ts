@@ -4,6 +4,7 @@ import UserToken from './lib/tokens/usertoken'
 import StreamingToken from './lib/tokens/streamingtoken'
 import TokenStore from './tokenstore'
 import MsalToken from './lib/tokens/msaltoken'
+import { TokenRefreshError } from './lib'
 
 interface IDeviceCodeAuth {
     user_code: string
@@ -77,33 +78,38 @@ export default class Msal {
 
     getMsalToken(){
         return new Promise<MsalToken>((resolve, reject) => {
-            const HttpClient = new Http()
-            const refreshToken = this._tokenStore.getUserToken()?.data.refresh_token
+            this.getOrRefreshUserToken().then((userToken) => {
+                const HttpClient = new Http()
+                const refreshToken = this._tokenStore.getUserToken()?.data.refresh_token
 
-            if(refreshToken === undefined){
-                reject('No refresh token found. Please authenticate first.')
-                return
-            }
+                if(refreshToken === undefined){
+                    reject('No refresh token found. Please authenticate first.')
+                    return
+                }
 
-            // HttpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/token', {
-            HttpClient.postRequest('login.live.com', '/oauth20_token.srf', {
-                "Content-Type": "application/x-www-form-urlencoded"
-            }, "client_id="+this._clientId+"&scope=service::http://Passport.NET/purpose::PURPOSE_XBOX_CLOUD_CONSOLE_TRANSFER_TOKEN&grant_type=refresh_token&refresh_token="+refreshToken
-            ).then((response) => {
-                const body = response.body()
+                // HttpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/token', {
+                HttpClient.postRequest('login.live.com', '/oauth20_token.srf', {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                }, "client_id="+this._clientId+"&scope=service::http://Passport.NET/purpose::PURPOSE_XBOX_CLOUD_CONSOLE_TRANSFER_TOKEN&grant_type=refresh_token&refresh_token="+refreshToken
+                ).then((response) => {
+                    const body = response.body()
 
-                const msalToken = new MsalToken({
-                    lpt: body.access_token,
-                    refresh_token: body.refresh_token,
-                    user_id: body.user_id,
+                    const msalToken = new MsalToken({
+                        lpt: body.access_token,
+                        refresh_token: body.refresh_token,
+                        user_id: body.user_id,
+                    })
+
+                    resolve(msalToken)
+
+                }).catch((error) => {
+                    reject(error)
                 })
-
-                resolve(msalToken)
 
             }).catch((error) => {
                 reject(error)
             })
-        });
+        })
     }
 
     doXstsAuthorization(userToken:string, relyingParty:string){
@@ -180,7 +186,14 @@ export default class Msal {
 
             }).catch((error) => {
                 // @TODO: Implement TokenRefreshError to let the user know to login again.
-                reject(error)
+
+                if(error.statuscode !== undefined && error.statuscode === 400){
+                    // We have received a 400 status error. This means the refresh token is invalid.
+                    reject(new TokenRefreshError('Failed to refresh tokens', error))
+                } else {
+                    reject(error)
+                }
+                
             })
         })
     }
@@ -198,8 +211,6 @@ export default class Msal {
     doXstsAuthentication(){
         return new Promise<XstsToken>((resolve, reject) => {
             this.getOrRefreshUserToken().then((userToken) => {
-            
-
                 if(userToken === undefined){
                     reject('No user token found. Please authenticate first.')
                     return

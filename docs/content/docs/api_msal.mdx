@@ -38,6 +38,8 @@ this._msal.doDeviceCodeAuth().then((deviceCodeDetails:any) => {
 
 ### Refresh user token
 
+Tokens are refreshed automatically when they are expired. The code below shows an example to force refresh the user token.
+
 ```js
 this._msal.refreshUserToken().then((tokens:any) => {
     console.log('tokens', tokens)

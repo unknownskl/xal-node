@@ -2,8 +2,7 @@
 import { Argument, Option, program } from 'commander'
 const pkg = require('../../package.json')
 
-import Xal from '../xal'
-import Msal from '../msal'
+import { Xal, Msal, TokenRefreshError } from '../lib'
 import TokenStore from '../tokenstore'
 
 class Auth {
@@ -120,7 +119,7 @@ Example commands:
                             console.log('Authentication succeeded!')
 
                             this._msal.refreshUserToken().then((tokens:any) => {
-                                console.log('Tokens:', tokens)
+                                // console.log('Tokens:', tokens)
                             }).catch((error) => {
                                 console.log('Failed to refresh token:', error)
                             })
@@ -195,7 +194,11 @@ Example commands:
             console.log('Tokens:\n- MSAL Token:', JSON.stringify(tokens.msalToken, null, 4), '\n- Web Token:', JSON.stringify(tokens.webToken, null, 4))
             console.log('Offering tokens:\n- xHome:', JSON.stringify(tokens.xhomeToken, null, 4), '\n- xCloud:', JSON.stringify(tokens.gpuToken, null, 4))
         }).catch((error) => {
-            console.log('Failed to retrieve tokens:', error)
+            if(error instanceof TokenRefreshError){
+                console.log('Failed to refresh user token. Please re-authenticate again using `xbox-auth auth`.\n Details:', error)
+            } else {
+                console.log('Failed to retrieve tokens. Please try again later.\n Details:', error)
+            }
         })
         
     }
