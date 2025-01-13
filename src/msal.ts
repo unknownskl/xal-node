@@ -146,7 +146,7 @@ export default class Msal {
     }
 
     refreshUserToken(){
-        return new Promise((resolve, reject) => {
+        return new Promise<UserToken>((resolve, reject) => {
             const refreshToken = this._tokenStore.getUserToken()?.data.refresh_token
 
             if(refreshToken === undefined){
@@ -185,38 +185,53 @@ export default class Msal {
         })
     }
 
+    async getOrRefreshUserToken(){
+        const userToken = this._tokenStore.getUserToken()
+
+        if(userToken === undefined || userToken.getSecondsValid() <= 60){
+            return (await this.refreshUserToken()).data.access_token
+        }
+
+        return userToken.data.access_token
+    }
+
     doXstsAuthentication(){
         return new Promise<XstsToken>((resolve, reject) => {
-            const userToken = this._tokenStore.getUserToken()?.data.access_token
+            this.getOrRefreshUserToken().then((userToken) => {
+            
 
-            if(userToken === undefined){
-                reject('No user token found. Please authenticate first.')
-                return
-            }
+                if(userToken === undefined){
+                    reject('No user token found. Please authenticate first.')
+                    return
+                }
 
-            const payload = {
-                Properties: {
-                    AuthMethod: 'RPS',
-                    RpsTicket: 'd='+userToken,
-                    SiteName: 'user.auth.xboxlive.com'
-                },
-                RelyingParty: 'http://auth.xboxlive.com',
-                TokenType: 'JWT'
-            }
-        
-            const body = JSON.stringify(payload)
-            const headers = {
-                'x-xbl-contract-version': '1',
-                'Cache-Control': 'no-cache',
-                'Content-Type': 'application/json',
-                'Origin': 'https://www.xbox.com',
-                'Referer': 'https://www.xbox.com/',
-            }
-        
-            const HttpClient = new Http()
-            HttpClient.postRequest('user.auth.xboxlive.com', '/user/authenticate', headers, body).then((response) => {
-                this._xstsToken = new XstsToken(response.body())
-                resolve(this._xstsToken)
+                const payload = {
+                    Properties: {
+                        AuthMethod: 'RPS',
+                        RpsTicket: 'd='+userToken,
+                        SiteName: 'user.auth.xboxlive.com'
+                    },
+                    RelyingParty: 'http://auth.xboxlive.com',
+                    TokenType: 'JWT'
+                }
+            
+                const body = JSON.stringify(payload)
+                const headers = {
+                    'x-xbl-contract-version': '1',
+                    'Cache-Control': 'no-cache',
+                    'Content-Type': 'application/json',
+                    'Origin': 'https://www.xbox.com',
+                    'Referer': 'https://www.xbox.com/',
+                }
+            
+                const HttpClient = new Http()
+                HttpClient.postRequest('user.auth.xboxlive.com', '/user/authenticate', headers, body).then((response) => {
+                    this._xstsToken = new XstsToken(response.body())
+                    resolve(this._xstsToken)
+
+                }).catch((error) => {
+                    reject(error)
+                })
 
             }).catch((error) => {
                 reject(error)

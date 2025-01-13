@@ -33,9 +33,6 @@ export default class UserToken extends Token {
     }
 
     getSecondsValid(){
-        if(this.data.id_token)
-            return 60
-
         if(this.data.expires_on)
             return this.calculateSecondsLeft(new Date(this.data.expires_on))
         
@@ -43,9 +40,6 @@ export default class UserToken extends Token {
     }
 
     isValid(){
-        if(this.data.id_token)
-            return true
-
         if(this.data.expires_on){
             const secondsLeft = this.calculateSecondsLeft(new Date(this.data.expires_on))
             return secondsLeft > 0
