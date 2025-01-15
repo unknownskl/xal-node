@@ -94,9 +94,9 @@ Example commands:
                         readline.question('Enter redirect uri: ', async redirectUri => {
                             readline.close()
                             // await this.loadTokensUsingCode(redirectUri, result.SessionId)
-                            const loggedIn = await this._xal.authenticateUser(this._tokenStore, redirect, redirectUri)
+                            const loggedIn = await this._xal.authenticateUser(redirect, redirectUri)
                             if(loggedIn === true){
-                                this._xal.refreshTokens(this._tokenStore)
+                                this._xal.refreshTokens()
                                 console.log('Authentication succeeded!')
                             } else {
                                 console.log('Authentication failed!')
@@ -171,7 +171,7 @@ Example commands:
         if(this._tokenStore.getAuthenticationMethod() === 'msal'){
             refreshMethod = this._msal.refreshUserToken()
         } else {
-            refreshMethod = this._xal.refreshTokens(this._tokenStore)
+            refreshMethod = this._xal.refreshTokens()
         }
 
         refreshMethod.then((token) => {

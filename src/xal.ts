@@ -8,6 +8,7 @@ import UserToken, { IUserToken } from './lib/tokens/usertoken'
 import StreamingToken from './lib/tokens/streamingtoken'
 import XstsToken from './lib/tokens/xststoken'
 import MsalToken from './lib/tokens/msaltoken'
+import { TokenRefreshError } from './lib'
 
 import TokenStore from './tokenstore'
 
@@ -288,7 +289,10 @@ export default class Xal {
 
     refreshUserToken(){
         return new Promise<UserToken>((resolve, reject) => {
-            const userToken = this._tokenStore.getUserToken() as UserToken
+            
+        const userToken = this._tokenStore.getUserToken()
+        if(userToken === undefined)
+            throw new TokenRefreshError('User token is missing. Please authenticate first', { details: 'User token is missing' })
 
             const payload = {
                 'client_id': this._app.AppId,
@@ -446,30 +450,26 @@ export default class Xal {
     }
 
     // Token retrieval helpers
-    async refreshTokens(tokenStore:TokenStore){
-        const curUserToken = tokenStore.getUserToken()
-        if(curUserToken === undefined)
-            throw new Error('User token is missing. Please authenticate first')
-
+    async refreshTokens(){
         try {
-            const userToken = await this.refreshUserToken(curUserToken)
+            const userToken = await this.refreshUserToken()
             const deviceToken = await this.getDeviceToken()
             const sisuToken = await this.doSisuAuthorization(userToken, deviceToken)
 
-            tokenStore.setUserToken(userToken)
-            tokenStore.setSisuToken(sisuToken)
-            tokenStore.save()
+            this._tokenStore.setUserToken(userToken)
+            this._tokenStore.setSisuToken(sisuToken)
+            this._tokenStore.save()
 
             return { userToken, deviceToken, sisuToken }
         } catch (error) {
-            throw new TokenRefreshError('Failed to refresh tokens: ' + JSON.stringify(error))
+            throw new TokenRefreshError('Failed to refresh tokens: ', error)
         }
     }
 
     async getMsalToken(){
         const userToken = this._tokenStore.getUserToken()
         if(userToken === undefined)
-            throw new Error('User token is missing. Please authenticate first')
+            throw new TokenRefreshError('User token is missing. Please authenticate first')
         
         return await this.exchangeRefreshTokenForXcloudTransferToken(userToken)    
     }
@@ -479,7 +479,7 @@ export default class Xal {
     async getWebToken(){
         const sisuToken = this._tokenStore.getSisuToken()
         if(sisuToken === undefined)
-            throw new Error('Sisu token is missing. Please authenticate first')
+            throw new TokenRefreshError('Sisu token is missing. Please authenticate first')
 
         if(this._webToken === undefined || this._webToken.getSecondsValid() <= 60){
             const token = await this.doXstsAuthorization(sisuToken, 'http://xboxlive.com')
@@ -497,7 +497,7 @@ export default class Xal {
     async getStreamingTokens(){
         const sisuToken = this._tokenStore.getSisuToken()
         if(sisuToken === undefined)
-            throw new Error('Sisu token is missing. Please authenticate first')
+            throw new TokenRefreshError('Sisu token is missing. Please authenticate first')
 
         const xstsToken = await this.doXstsAuthorization(sisuToken, 'http://gssv.xboxlive.com/')
 
@@ -531,7 +531,7 @@ export default class Xal {
 
 
 
-    async authenticateUser(tokenStore:TokenStore, redirectObject:{
+    async authenticateUser(redirectObject:{
         sisuAuth: ISisuAuthenticationResponse;
         state: string;
         codeChallange: ICodeChallange;
@@ -548,14 +548,14 @@ export default class Xal {
         if(code){
             const state = url.searchParams.get('state')
             if(state) {
-                return this.authenticateUserUsingCode(tokenStore, redirectObject, code, state)
+                return this.authenticateUserUsingCode(redirectObject, code, state)
             }
         }
 
         return false
     }
 
-    async authenticateUserUsingCode(tokenStore:TokenStore, redirectObject:{
+    async authenticateUserUsingCode(redirectObject:{
         sisuAuth: ISisuAuthenticationResponse;
         state: string;
         codeChallange: ICodeChallange;
@@ -568,12 +568,10 @@ export default class Xal {
         const codeChallange = await this.getCodeChallange()
         const userToken = await this.exchangeCodeForToken(code, codeChallange.verifier)
 
-        tokenStore.setUserToken(userToken)
-        tokenStore.setJwtKeys(this.jwtKeys)
-        tokenStore.save()
+        this._tokenStore.setUserToken(userToken)
+        this._tokenStore.setJwtKeys(this.jwtKeys)
+        this._tokenStore.save()
 
         return true
     }
 }
-
-export class TokenRefreshError extends Error {}
