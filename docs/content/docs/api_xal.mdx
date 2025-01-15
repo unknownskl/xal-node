@@ -40,7 +40,7 @@ this._xal.getRedirectUri().then((redirect) => {
 })
 ```
 
-## Refresh user token
+### Refresh user token
 
 ```js
 this._xal.refreshTokens().then((tokens) => {
@@ -54,7 +54,7 @@ this._xal.refreshTokens().then((tokens) => {
 })
 ```
 
-## Retrieve MSAL token
+### Retrieve MSAL token
 
 The MSAL token is used to send over to xCloud to login on the xCloud console with your account. This token is short lived and expires within 15 minutes.
 
@@ -66,7 +66,7 @@ this._xal.getMsalToken().then((msalToken) => {
 })
 ```
 
-## Retrieve web token
+### Retrieve web token
 
 The web token is used to retrieve data using the Xbox Web API. This includes current friend lists, achievements and smartglass controls.
 
@@ -78,7 +78,7 @@ this._xal.getWebToken().then((webToken) => {
 })
 ```
 
-## Retrieve Streaming tokens
+### Retrieve Streaming tokens
 
 Use streaming tokens contains both the xHome and xCllud tokens. If the user does not have an active Gamepass subscription, the xCloud F2P token is retrieved.
 
