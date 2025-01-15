@@ -28,8 +28,10 @@ interface ISisuAuthenticationResponse {
 
 export default class Xal {
 
-    keys
-    jwtKeys
+    private _tokenStore:TokenStore
+
+    private keys:any
+    private jwtKeys:any
 
     _app = {
         AppId: '000000004c20a908', //'000000004c12ae6f', // 0000000048183522 = working, but minecraft --<<< 000000004c12ae6f works, xbox app
@@ -37,15 +39,16 @@ export default class Xal {
         RedirectUri: 'ms-xal-000000004c20a908://auth'
     }
 
-    constructor(tokenStore?:TokenStore){
-        if(tokenStore && tokenStore._jwtKeys){
-            this.setKeys(tokenStore._jwtKeys.jwt).then((keys) => {
+    constructor(tokenStore:TokenStore){
+        this._tokenStore = tokenStore
+
+        if(this._tokenStore?._jwtKeys?.jwt !== undefined){
+            this.setKeys(this._tokenStore._jwtKeys.jwt).then((keys) => {
                 // console.log('Keys loaded:', keys)
             }).catch((error) => {
                 console.log('Failed to load keys:', error)
             })
         }
-
     }
 
     setKeys(orgJwtKey){
@@ -242,7 +245,12 @@ export default class Xal {
             
                 const HttpClient = new Http()
                 HttpClient.postRequest('sisu.xboxlive.com', '/authorize', headers, body).then((response) => {
-                    resolve(new SisuToken(response.body()))
+                    const sisuToken = new SisuToken(response.body())
+
+                    this._tokenStore.setSisuToken(sisuToken)
+                    this._tokenStore.save()
+
+                    resolve(sisuToken)
 
                 }).catch((error) => {
                     reject(error)
@@ -278,8 +286,10 @@ export default class Xal {
         })
     }
 
-    refreshUserToken(userToken:UserToken){
+    refreshUserToken(){
         return new Promise<UserToken>((resolve, reject) => {
+            const userToken = this._tokenStore.getUserToken() as UserToken
+
             const payload = {
                 'client_id': this._app.AppId,
                 'grant_type': 'refresh_token',
@@ -295,7 +305,14 @@ export default class Xal {
         
             const HttpClient = new Http()
             HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
-                resolve(new UserToken(response.body()))
+                // resolve(new UserToken(response.body()))
+                const userTokenBody = response.body()
+                const userToken = new UserToken(userTokenBody)
+
+                this._tokenStore.setUserToken(userToken)
+                this._tokenStore.save()
+
+                resolve(userToken)
 
             }).catch((error) => {
                 reject(error)
@@ -449,8 +466,8 @@ export default class Xal {
         }
     }
 
-    async getMsalToken(tokenStore:TokenStore){
-        const userToken = tokenStore.getUserToken()
+    async getMsalToken(){
+        const userToken = this._tokenStore.getUserToken()
         if(userToken === undefined)
             throw new Error('User token is missing. Please authenticate first')
         
@@ -459,8 +476,8 @@ export default class Xal {
 
     _webToken:XstsToken | undefined
 
-    async getWebToken(tokenStore:TokenStore){
-        const sisuToken = tokenStore.getSisuToken()
+    async getWebToken(){
+        const sisuToken = this._tokenStore.getSisuToken()
         if(sisuToken === undefined)
             throw new Error('Sisu token is missing. Please authenticate first')
 
@@ -477,8 +494,8 @@ export default class Xal {
     _xhomeToken:StreamingToken | undefined
     _xcloudToken:StreamingToken | undefined
 
-    async getStreamingToken(tokenStore:TokenStore){
-        const sisuToken = tokenStore.getSisuToken()
+    async getStreamingTokens(){
+        const sisuToken = this._tokenStore.getSisuToken()
         if(sisuToken === undefined)
             throw new Error('Sisu token is missing. Please authenticate first')
 

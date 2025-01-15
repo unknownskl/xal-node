@@ -4,14 +4,15 @@ const assert = require('node:assert').strict
 const XalLibrary = require('../');
 const UserToken = require('../dist/lib/tokens/usertoken').default
 const XstsToken = require('../dist/lib/tokens/xststoken').default
-const xal = new XalLibrary.Xal()
+const tokenStore = new XalLibrary.TokenStore()
+const xal = new XalLibrary.Xal(tokenStore)
 
 test('XalAuthenticator should have an handler returned', (t) => {
     assert.notDeepStrictEqual(xal, undefined, "xal.handler should not be undefined")
 });
 
 test('XalAuthenticator should retrieve a deviceToken', async (t) => {
-    const xal2 = new XalLibrary.Xal()
+    const xal2 = new XalLibrary.Xal(tokenStore)
 
     const deviceToken = await xal2.getDeviceToken()
 
@@ -20,7 +21,7 @@ test('XalAuthenticator should retrieve a deviceToken', async (t) => {
 });
 
 test('XalAuthenticator should retrieve a authentication URL', async (t) => {
-    const xal2 = new XalLibrary.Xal()
+    const xal2 = new XalLibrary.Xal(tokenStore)
 
     const deviceToken = await xal2.getDeviceToken()
     assert.notDeepStrictEqual(deviceToken.data.Token, undefined, "Device token should not be undefined")
@@ -37,7 +38,7 @@ test('XalAuthenticator should retrieve a authentication URL', async (t) => {
 });
 
 test('XalAuthenticator refreshUserToken should fail properly', async (t) => {
-    const xal2 = new XalLibrary.Xal()
+    const xal2 = new XalLibrary.Xal(tokenStore)
 
     try {
         await xal2.refreshUserToken(new UserToken({ }))
@@ -51,7 +52,7 @@ test('XalAuthenticator refreshUserToken should fail properly', async (t) => {
 });
 
 test('XalAuthenticator getStreamToken should fail properly', async (t) => {
-    const xal2 = new XalLibrary.Xal()
+    const xal2 = new XalLibrary.Xal(tokenStore)
 
     try {
         await xal2.getStreamToken(new XstsToken({ }), 'xhome')

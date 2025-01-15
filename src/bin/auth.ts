@@ -213,9 +213,9 @@ Example commands:
             webToken = await this._msal.getWebToken()
             streamingTokens = await this._msal.getStreamingTokens()
         } else {
-            msalToken = await this._xal.getMsalToken(this._tokenStore)
-            webToken = await this._xal.getWebToken(this._tokenStore)
-            streamingTokens = await this._xal.getStreamingToken(this._tokenStore)
+            msalToken = await this._xal.getMsalToken()
+            webToken = await this._xal.getWebToken()
+            streamingTokens = await this._xal.getStreamingTokens()
         }
 
         const gpuToken = streamingTokens.xCloudToken

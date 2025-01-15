@@ -3,10 +3,6 @@ title: XAL API
 description: Xal-Node API for Xal Authentication
 ---
 
-<Callout title="Updates expected in the future" type="warn">
-  Updates are planned in the future to improve the user experience while using the library.
-</Callout>
-
 ### Load the library
 
 ```js
@@ -17,10 +13,8 @@ this._tokenStore = new TokenStore()
 this._tokenStore.load('.xbox.tokens.json') // File will be saved in the current working directory when using relative paths
 
 // Setup Msal
-this._xal = new Msal(this._tokenStore)
+this._xal = new Xal(this._tokenStore)
 ```
-
-
 
 ## Performing authentication
 
@@ -49,7 +43,7 @@ this._xal.getRedirectUri().then((redirect) => {
 ## Refresh user token
 
 ```js
-this._xal.refreshTokens(this._tokenStore).then((tokens) => {
+this._xal.refreshTokens().then((tokens) => {
     console.log('tokens', tokens)
 }).catch((err) => {
     if(err instanceof TokenRefreshError) {
@@ -65,7 +59,7 @@ this._xal.refreshTokens(this._tokenStore).then((tokens) => {
 The MSAL token is used to send over to xCloud to login on the xCloud console with your account. This token is short lived and expires within 15 minutes.
 
 ```js
-this._xal.getMsalToken(this._tokenStore).then((msalToken) => {
+this._xal.getMsalToken().then((msalToken) => {
     console.log('msalToken', msalToken)
 }).catch((err) => {
     console.error(err)
@@ -77,7 +71,7 @@ this._xal.getMsalToken(this._tokenStore).then((msalToken) => {
 The web token is used to retrieve data using the Xbox Web API. This includes current friend lists, achievements and smartglass controls.
 
 ```js
-this._xal.getWebToken(this._tokenStore).then((webToken) => {
+this._xal.getWebToken().then((webToken) => {
     console.log('webToken', webToken)
 }).catch((err) => {
     console.error(err)
@@ -89,7 +83,7 @@ this._xal.getWebToken(this._tokenStore).then((webToken) => {
 Use streaming tokens contains both the xHome and xCllud tokens. If the user does not have an active Gamepass subscription, the xCloud F2P token is retrieved.
 
 ```js
-this._xal.getStreamingToken(this._tokenStore).then((streamingTokens) => {
+this._xal.getStreamingTokens().then((streamingTokens) => {
     console.log('streamingTokens', streamingTokens)
 }).catch((err) => {
     console.error(err)
