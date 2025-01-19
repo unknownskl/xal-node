@@ -33,6 +33,12 @@ jobs:
         with:
           node-version: 22
 
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        if: matrix.os == 'ubuntu-latest'
+
       - name: Install npm dependencies
         run: npm ci
       
