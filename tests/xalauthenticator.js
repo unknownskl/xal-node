@@ -61,6 +61,6 @@ test('XalAuthenticator getStreamToken should fail properly', async (t) => {
     } catch (error) {
         assert.notDeepStrictEqual(error, undefined, "Error should not be undefined")
         assert.notDeepStrictEqual(error.expected, true, "getStreamToken should fail")
-        assert.deepStrictEqual(error.statuscode, 400, "Statuscode should be 400")
+        assert.deepStrictEqual(error.error.statuscode, 400, "Statuscode should be 400")
     }
 });

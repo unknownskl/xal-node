@@ -34,18 +34,18 @@ export default class Http {
                             resolve(new HttpResponse(JSON.parse(responseData.toString()), res.headers))
                         }
                     } else {
-                        reject({
+                        reject(new HttpError('Error fetching '+host+path, {
                             statuscode: res.statusCode,
                             headers: res.headers,
                             body: responseData.toString(),
                             message: 'Error fetching '+host+path
-                        })
+                        }))
                     }
                 })
             })
             
             req.on('error', (error) => {
-                reject(error)
+                reject(new HttpOtherError('Unhandled error', error))
             })
 
             req.end()
@@ -90,18 +90,18 @@ export default class Http {
                             resolve(new HttpResponse(JSON.parse(responseData.toString()), res.headers))
                         }
                     } else {
-                        reject({
+                        reject(new HttpError('Error fetching '+host+path, {
                             statuscode: res.statusCode,
                             headers: res.headers,
                             body: responseData.toString(),
                             message: 'Error fetching '+host+path
-                        })
+                        }))
                     }
                 })
             })
             
             req.on('error', (error) => {
-                reject(error)
+                reject(new HttpOtherError('Unhandled error', error))
             })
 
             req.write(data)
@@ -129,4 +129,19 @@ export class HttpResponse {
     body(){
         return this.data
     }
+}
+
+
+class HttpError implements Error {
+    name = 'HttpError'
+    message = 'Unknown error'
+
+    constructor(message:string, public error?:any){
+        this.message = message
+        this.error = error
+    }
+}
+
+class HttpOtherError extends HttpError {
+    name = 'HttpOtherError'
 }
