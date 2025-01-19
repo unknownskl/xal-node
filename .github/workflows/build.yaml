@@ -37,6 +37,12 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=unknownskl-github
+            -Dsonar.projectKey=unknownskl_xal-node
+            -Dsonar.tests=tests/
+            -Dsonar.test.exclusions=tests/**
         if: matrix.os == 'ubuntu-latest'
 
       - name: Install npm dependencies
