@@ -26,6 +26,7 @@ jobs:
       - name: Checkout Git repository
         uses: actions/checkout@v4.2.2
         with:
+          fetch-depth: 0
           submodules: recursive
       
       - name: Setup Node.js
