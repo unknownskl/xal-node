@@ -7,7 +7,6 @@ export default class Http {
         return new Promise<HttpResponse>((resolve, reject) => {
 
             const hostHeaders = {
-                // 'Content-Type': 'application/json',
                 ...headers,
             }
 
@@ -34,18 +33,18 @@ export default class Http {
                             resolve(new HttpResponse(JSON.parse(responseData.toString()), res.headers))
                         }
                     } else {
-                        reject(new HttpError('Error fetching '+host+path, {
+                        reject(new Error('Error fetching '+host+path+'. Details:'+ JSON.stringify({
                             statuscode: res.statusCode,
                             headers: res.headers,
                             body: responseData.toString(),
                             message: 'Error fetching '+host+path
-                        }))
+                        }, null, 2)))
                     }
                 })
             })
             
             req.on('error', (error) => {
-                reject(new HttpOtherError('Unhandled error', error))
+                reject(new Error('Unhandled error:'+ JSON.stringify(error)))
             })
 
             req.end()
@@ -57,7 +56,6 @@ export default class Http {
         return new Promise<HttpResponse>((resolve, reject) => {
 
             const hostHeaders = {
-                // 'Content-Type': 'application/json',
                 ...headers,
             }
 
@@ -72,8 +70,6 @@ export default class Http {
                 port: 443,
                 headers: hostHeaders
             }
-
-            // console.log(options, data)
 
             const req = https.request(options, (res) => {
                 let responseData = ''
@@ -90,18 +86,18 @@ export default class Http {
                             resolve(new HttpResponse(JSON.parse(responseData.toString()), res.headers))
                         }
                     } else {
-                        reject(new HttpError('Error fetching '+host+path, {
+                        reject(new Error('Error fetching '+host+path+'. Details:'+ JSON.stringify({
                             statuscode: res.statusCode,
                             headers: res.headers,
                             body: responseData.toString(),
                             message: 'Error fetching '+host+path
-                        }))
+                        }, null, 2)))
                     }
                 })
             })
             
             req.on('error', (error) => {
-                reject(new HttpOtherError('Unhandled error', error))
+                reject(new Error('Unhandled error:'+ JSON.stringify(error)))
             })
 
             req.write(data)
@@ -129,19 +125,4 @@ export class HttpResponse {
     body(){
         return this.data
     }
-}
-
-
-class HttpError implements Error {
-    name = 'HttpError'
-    message = 'Unknown error'
-
-    constructor(message:string, public error?:any){
-        this.message = message
-        this.error = error
-    }
-}
-
-class HttpOtherError extends HttpError {
-    name = 'HttpOtherError'
 }
