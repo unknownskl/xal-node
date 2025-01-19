@@ -45,7 +45,7 @@ export default class Http {
             })
             
             req.on('error', (error) => {
-                reject(error)
+                reject(new HttpOtherError('Unhandled error', error))
             })
 
             req.end()
@@ -101,7 +101,7 @@ export default class Http {
             })
             
             req.on('error', (error) => {
-                reject(error)
+                reject(new HttpOtherError('Unhandled error', error))
             })
 
             req.write(data)
@@ -140,4 +140,8 @@ class HttpError implements Error {
         this.message = message
         this.error = error
     }
+}
+
+class HttpOtherError extends HttpError {
+    name = 'HttpOtherError'
 }
