@@ -43,7 +43,7 @@ jobs:
             -Dsonar.organization=unknownskl-github \
             -Dsonar.projectKey=unknownskl_xal-node \
             -Dsonar.sources=./src
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && github.event_name != 'pull_request'
 
       - name: Install npm dependencies
         run: npm ci
@@ -54,5 +54,5 @@ jobs:
       - name: Run NodeJS Tests
         run: npm run test
 
-      - name: Set release version
-        run: python3 -c "import os; tag = os.environ['GITHUB_REF'].split('/')[-1]; f = open(os.environ['GITHUB_ENV'], 'a'); f.write('RELEASE_VERSION='+tag); f.close();"
+      # - name: Set release version
+      #   run: python3 -c "import os; tag = os.environ['GITHUB_REF'].split('/')[-1]; f = open(os.environ['GITHUB_ENV'], 'a'); f.write('RELEASE_VERSION='+tag); f.close();"
