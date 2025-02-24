@@ -1,6 +1,6 @@
 import Http from './lib/http'
 import crypto, { subtle, KeyObject } from 'crypto'
-import { exportJWK } from 'jose'
+const jose = require('jose')
 
 import DeviceToken from './lib/tokens/devicetoken'
 import SisuToken, { ISisuToken } from './lib/tokens/sisutoken'
@@ -85,7 +85,7 @@ export default class Xal {
                     raw: this.keys
                 }
 
-                exportJWK(this.keys.publicKey).then(jwk => {
+                jose.exportJWK(this.keys.publicKey).then(jwk => {
                     const jwkKey = { ...jwk, alg: 'ES256', use: 'sig' }
                     this.jwtKeys = {
                         raw: this.keys,
