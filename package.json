@@ -25,7 +25,10 @@
   },
   "keywords": [
     "xbox",
-    "xal"
+    "xal",
+    "auth",
+    "authentication",
+    "webapi"
   ],
   "bugs": {
     "url": "https://github.com/unknownskl/xal-node/issues"
