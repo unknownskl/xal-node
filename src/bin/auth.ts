@@ -112,10 +112,10 @@ Example commands:
 
                 this._msal.doDeviceCodeAuth().then((deviceCodeDetails:any) => {
                     if(deviceCodeDetails){
-                        console.log('Please follow the instructions below:')
+                        console.log('Please follow the instructions below (Expires in '+deviceCodeDetails.expires_in+' seconds):')
                         console.log(deviceCodeDetails.message)
 
-                        this._msal.doPollForDeviceCodeAuth(deviceCodeDetails.device_code).then((tokens:any) => {
+                        this._msal.doPollForDeviceCodeAuth(deviceCodeDetails.device_code, deviceCodeDetails.expires_in * 1000).then((tokens:any) => {
                             console.log('Authentication succeeded!')
 
                             this._msal.refreshUserToken().then((tokens:any) => {
@@ -123,6 +123,8 @@ Example commands:
                             }).catch((error) => {
                                 console.log('Failed to refresh token:', error)
                             })
+                        }).catch((error) => {
+                            console.log('Failed to authenticate:', error)
                         })
                     }
                 }).catch((error) => {

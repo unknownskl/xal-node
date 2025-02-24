@@ -49,7 +49,7 @@ export default class Msal {
     /**
      * Keeps polling for authentication changes. The promise will be fullfilled once the user has authenticated.
      */
-    doPollForDeviceCodeAuth(deviceCode:string){
+    doPollForDeviceCodeAuth(deviceCode:string, timeout = 900 * 1000, startTime = Date.now()){
         return new Promise((resolve, reject) => {
             const HttpClient = new Http()
 
@@ -65,8 +65,12 @@ export default class Msal {
                 resolve(body)
 
             }).catch((error) => {
+                if (Date.now() - startTime >= timeout) {
+                    reject({ message: 'Timeout'});
+                    return;
+                }
                 setTimeout(() => {
-                    this.doPollForDeviceCodeAuth(deviceCode).then((response) => {
+                    this.doPollForDeviceCodeAuth(deviceCode, timeout, startTime).then((response) => {
                         resolve(response)
                     }).catch((error) => {
                         reject(error)

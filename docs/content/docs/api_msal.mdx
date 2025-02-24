@@ -24,7 +24,7 @@ The below method will return an object with details with an url and code which t
 this._msal.doDeviceCodeAuth().then((deviceCodeDetails:any) => {
     console.log('deviceCodeDetails', deviceCodeDetails)
 
-    this._msal.doPollForDeviceCodeAuth(deviceCodeDetails.device_code).then((tokens:any) => {
+    this._msal.doPollForDeviceCodeAuth(deviceCodeDetails.device_code, deviceCodeDetails.expires_in * 1000).then((tokens:any) => {
 
             console.log('User token', tokens) // This token will be automatically saved in the TokenStore
 
