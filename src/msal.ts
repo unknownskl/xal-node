@@ -287,7 +287,7 @@ export default class Msal {
         return this._gssvToken
     }
 
-    async getStreamingTokens(){
+    async getStreamingTokens(fri:string = ''){
 
         const gssvToken = await this.getGssvToken()
 
@@ -299,15 +299,15 @@ export default class Msal {
 
         let _xcloudToken:StreamingToken
         try {
-            _xcloudToken = await this.getStreamToken(gssvToken.data.Token, 'xgpuweb')
+            _xcloudToken = await this.getStreamToken(gssvToken.data.Token, 'xgpuweb', fri)
         } catch(error){
-            _xcloudToken = await this.getStreamToken(gssvToken.data.Token, 'xgpuwebf2p')
+            _xcloudToken = await this.getStreamToken(gssvToken.data.Token, 'xgpuwebf2p', fri)
         }
 
         return { xHomeToken: _xhomeToken, xCloudToken: _xcloudToken }
     }
 
-    getStreamToken(userToken:string, offering:string){
+    getStreamToken(userToken:string, offering:string, fri:string = ''){
         return new Promise<StreamingToken>((resolve, reject) => {
             const payload = {
                 'token': userToken,
@@ -320,6 +320,10 @@ export default class Msal {
                 'Cache-Control': 'no-store, must-revalidate, no-cache',
                 'x-gssv-client': 'XboxComBrowser',
                 'Content-Length': body.length,
+            }
+        
+            if(fri !== ''){
+                headers['X-Forwarded-For'] = fri
             }
         
             const HttpClient = new Http()
