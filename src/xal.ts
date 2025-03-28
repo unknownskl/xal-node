@@ -385,7 +385,7 @@ export default class Xal {
         })
     }
 
-    getStreamToken(xstsToken:XstsToken, offering:string){
+    getStreamToken(xstsToken:XstsToken, offering:string, fri:string = ''){
         return new Promise<StreamingToken>((resolve, reject) => {
             const payload = {
                 'token': xstsToken.data.Token,
@@ -398,6 +398,10 @@ export default class Xal {
                 'Cache-Control': 'no-store, must-revalidate, no-cache',
                 'x-gssv-client': 'XboxComBrowser',
                 'Content-Length': body.length,
+            }
+
+            if(fri !== ''){
+                headers['X-Forwarded-For'] = fri
             }
         
             const HttpClient = new Http()
@@ -494,7 +498,7 @@ export default class Xal {
     _xhomeToken:StreamingToken | undefined
     _xcloudToken:StreamingToken | undefined
 
-    async getStreamingTokens(){
+    async getStreamingTokens(fri:string = ''){
         const sisuToken = this._tokenStore.getSisuToken()
         if(sisuToken === undefined)
             throw new TokenRefreshError('Sisu token is missing. Please authenticate first')
@@ -507,9 +511,9 @@ export default class Xal {
 
         if(this._xcloudToken === undefined || this._xcloudToken.getSecondsValid() <= 60){
             try {
-                this._xcloudToken = await this.getStreamToken(xstsToken, 'xgpuweb')
+                this._xcloudToken = await this.getStreamToken(xstsToken, 'xgpuweb', fri)
             } catch(error){
-                this._xcloudToken = await this.getStreamToken(xstsToken, 'xgpuwebf2p')
+                this._xcloudToken = await this.getStreamToken(xstsToken, 'xgpuwebf2p', fri)
             }
         }
 
