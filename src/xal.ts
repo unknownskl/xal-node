@@ -30,6 +30,7 @@ interface ISisuAuthenticationResponse {
 export default class Xal {
 
     private _tokenStore:TokenStore
+    private _httpClient:Http = new Http()
 
     private keys:any
     private jwtKeys:any
@@ -50,6 +51,10 @@ export default class Xal {
                 console.log('Failed to load keys:', error)
             })
         }
+    }
+
+    setDefaultHeaders(headers:Record<string, string>){
+        this._httpClient.setDefaultHeaders(headers)
     }
 
     setKeys(orgJwtKey){
@@ -163,8 +168,7 @@ export default class Xal {
                     'Cache-Control': 'no-store, must-revalidate, no-cache'
                 }, Signature: signature }
             
-                const HttpClient = new Http()
-                HttpClient.postRequest('device.auth.xboxlive.com', '/device/authenticate', headers, body).then((response) => {
+                this._httpClient.postRequest('device.auth.xboxlive.com', '/device/authenticate', headers, body).then((response) => {
                     resolve(new DeviceToken(response.body()))
 
                 }).catch((error) => {
@@ -201,8 +205,7 @@ export default class Xal {
                     'Cache-Control': 'no-store, must-revalidate, no-cache',
                 }, Signature: signature }
             
-                const HttpClient = new Http()
-                HttpClient.postRequest('sisu.xboxlive.com', '/authenticate', headers, body).then((response) => {
+                this._httpClient.postRequest('sisu.xboxlive.com', '/authenticate', headers, body).then((response) => {
                     // Add SessionId to response object
                     const resBody = { SessionId: response.headers['x-sessionid'], ...response.body() }
                     resolve(( resBody as ISisuAuthenticationResponse))
@@ -244,8 +247,7 @@ export default class Xal {
                     signature: signature
                 }
             
-                const HttpClient = new Http()
-                HttpClient.postRequest('sisu.xboxlive.com', '/authorize', headers, body).then((response) => {
+                this._httpClient.postRequest('sisu.xboxlive.com', '/authorize', headers, body).then((response) => {
                     const sisuToken = new SisuToken(response.body())
 
                     this._tokenStore.setSisuToken(sisuToken)
@@ -277,8 +279,7 @@ export default class Xal {
                 'Cache-Control': 'no-store, must-revalidate, no-cache',
             }
         
-            const HttpClient = new Http()
-            HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
+            this._httpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
                 resolve(new UserToken(response.body()))
 
             }).catch((error) => {
@@ -307,8 +308,7 @@ export default class Xal {
                 'Cache-Control': 'no-store, must-revalidate, no-cache',
             }
         
-            const HttpClient = new Http()
-            HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
+            this._httpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
                 // resolve(new UserToken(response.body()))
                 const userTokenBody = response.body()
                 const userToken = new UserToken(userTokenBody)
@@ -346,8 +346,7 @@ export default class Xal {
                     'Cache-Control': 'no-store, must-revalidate, no-cache',
                 }, Signature: signature }
             
-                const HttpClient = new Http()
-                HttpClient.postRequest('xsts.auth.xboxlive.com', '/xsts/authorize', headers, body).then((response) => {
+                this._httpClient.postRequest('xsts.auth.xboxlive.com', '/xsts/authorize', headers, body).then((response) => {
                     resolve(new XstsToken(response.body()))
 
                 }).catch((error) => {
@@ -375,8 +374,7 @@ export default class Xal {
                 'Cache-Control': 'no-store, must-revalidate, no-cache',
             }
         
-            const HttpClient = new Http()
-            HttpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
+            this._httpClient.postRequest('login.live.com', '/oauth20_token.srf', headers, body).then((response) => {
                 resolve(new MsalToken(response.body()))
 
             }).catch((error) => {
@@ -400,8 +398,7 @@ export default class Xal {
                 'Content-Length': body.length,
             }
         
-            const HttpClient = new Http()
-            HttpClient.postRequest(offering+'.gssv-play-prod.xboxlive.com', '/v2/login/user', headers, body).then((response) => {
+            this._httpClient.postRequest(offering+'.gssv-play-prod.xboxlive.com', '/v2/login/user', headers, body).then((response) => {
                 resolve(new StreamingToken(response.body()))
 
             }).catch((error) => {
@@ -568,6 +565,7 @@ export default class Xal {
         const codeChallange = await this.getCodeChallange()
         const userToken = await this.exchangeCodeForToken(code, codeChallange.verifier)
 
+        this._tokenStore.removeAll()
         this._tokenStore.setUserToken(userToken)
         this._tokenStore.setJwtKeys(this.jwtKeys)
         this._tokenStore.save()
