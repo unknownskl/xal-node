@@ -79,6 +79,9 @@ export default class TokenStore {
     }
 
     removeAll() {
+        this._userToken = undefined
+        this._sisuToken = undefined
+
         fs.writeFileSync(this._filepath, JSON.stringify({}))
     }
 

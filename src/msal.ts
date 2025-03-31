@@ -19,6 +19,7 @@ export default class Msal {
 
     private _tokenStore:TokenStore
     private _clientId = '1f907974-e22b-4810-a9de-d9647380c97e'
+    private _httpClient:Http = new Http()
 
     private _xstsToken:XstsToken | undefined
     private _gssvToken:XstsToken | undefined
@@ -29,20 +30,23 @@ export default class Msal {
         this._tokenStore = tokenStore
     }
 
+    setDefaultHeaders(headers:Record<string, string>){
+        this._httpClient.setDefaultHeaders(headers)
+    }
+
     /**
      * Creates a new device code authentication request.
      */
     doDeviceCodeAuth(){
         return new Promise<IDeviceCodeAuth>((resolve, reject) => {
-            const HttpClient = new Http()
-                HttpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/devicecode', {
-                    "Content-Type": "application/x-www-form-urlencoded"
-                }, "client_id="+this._clientId+"&scope=xboxlive.signin%20openid%20profile%20offline_access").then((response) => {
-                    resolve(response.body())
+            this._httpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/devicecode', {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }, "client_id="+this._clientId+"&scope=xboxlive.signin%20openid%20profile%20offline_access").then((response) => {
+                resolve(response.body())
 
-                }).catch((error) => {
-                    reject(error)
-                })
+            }).catch((error) => {
+                reject(error)
+            })
         })
     }
 
@@ -51,15 +55,14 @@ export default class Msal {
      */
     doPollForDeviceCodeAuth(deviceCode:string, timeout = 900 * 1000, startTime = Date.now()){
         return new Promise((resolve, reject) => {
-            const HttpClient = new Http()
-
-            HttpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/token', {
+            this._httpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/token', {
                 "Content-Type": "application/x-www-form-urlencoded"
             }, "grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id="+this._clientId+"&device_code="+deviceCode
             ).then((response) => {
                 const body = response.body()
                 const userToken = new UserToken(body)
 
+                this._tokenStore.removeAll()
                 this._tokenStore.setUserToken(userToken)
                 this._tokenStore.save()
                 resolve(body)
@@ -83,7 +86,6 @@ export default class Msal {
     getMsalToken(){
         return new Promise<MsalToken>((resolve, reject) => {
             this.getOrRefreshUserToken().then((userToken) => {
-                const HttpClient = new Http()
                 const refreshToken = this._tokenStore.getUserToken()?.data.refresh_token
 
                 if(refreshToken === undefined){
@@ -91,8 +93,7 @@ export default class Msal {
                     return
                 }
 
-                // HttpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/token', {
-                HttpClient.postRequest('login.live.com', '/oauth20_token.srf', {
+                this._httpClient.postRequest('login.live.com', '/oauth20_token.srf', {
                     "Content-Type": "application/x-www-form-urlencoded"
                 }, "client_id="+this._clientId+"&scope=service::http://Passport.NET/purpose::PURPOSE_XBOX_CLOUD_CONSOLE_TRANSFER_TOKEN&grant_type=refresh_token&refresh_token="+refreshToken
                 ).then((response) => {
@@ -145,8 +146,7 @@ export default class Msal {
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
             }
         
-            const HttpClient = new Http()
-            HttpClient.postRequest('xsts.auth.xboxlive.com', '/xsts/authorize', headers, body).then((response) => {
+            this._httpClient.postRequest('xsts.auth.xboxlive.com', '/xsts/authorize', headers, body).then((response) => {
                 resolve(new XstsToken(response.body()))
 
             }).catch((error) => {
@@ -177,8 +177,7 @@ export default class Msal {
                 'Cache-Control': 'no-store, must-revalidate, no-cache',
             }
         
-            const HttpClient = new Http()
-            HttpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/token', headers, body).then((response) => {
+            this._httpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/token', headers, body).then((response) => {
 
                 const userTokenBody = response.body()
                 const userToken = new UserToken(userTokenBody)
@@ -239,8 +238,7 @@ export default class Msal {
                     'Referer': 'https://www.xbox.com/',
                 }
             
-                const HttpClient = new Http()
-                HttpClient.postRequest('user.auth.xboxlive.com', '/user/authenticate', headers, body).then((response) => {
+                this._httpClient.postRequest('user.auth.xboxlive.com', '/user/authenticate', headers, body).then((response) => {
                     this._xstsToken = new XstsToken(response.body())
                     resolve(this._xstsToken)
 
@@ -322,8 +320,7 @@ export default class Msal {
                 'Content-Length': body.length,
             }
         
-            const HttpClient = new Http()
-            HttpClient.postRequest(offering+'.gssv-play-prod.xboxlive.com', '/v2/login/user', headers, body).then((response) => {
+            this._httpClient.postRequest(offering+'.gssv-play-prod.xboxlive.com', '/v2/login/user', headers, body).then((response) => {
                 resolve(new StreamingToken(response.body()))
 
             }).catch((error) => {

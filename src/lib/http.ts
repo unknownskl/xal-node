@@ -3,11 +3,22 @@ import https from 'https'
 
 export default class Http {
 
+    private _headers:Record<string, string> = {}
+
+    setDefaultHeaders(headers:Record<string, string>){
+        this._headers = headers
+    }
+
+    getDefaultHeaders(){
+        return this._headers
+    }
+
     getRequest(host, path, headers) {
         return new Promise<HttpResponse>((resolve, reject) => {
 
             const hostHeaders = {
                 ...headers,
+                ...this._headers,
             }
 
             const options = {
@@ -57,6 +68,7 @@ export default class Http {
 
             const hostHeaders = {
                 ...headers,
+                ...this._headers,
             }
 
             if(typeof data === 'object'){
