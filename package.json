@@ -1,6 +1,6 @@
 {
   "name": "xal-node",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "XAL implementation in Typescript. Used for authenticating to services like Xbox.",
   "main": "dist/lib.js",
   "scripts": {
