@@ -87,3 +87,21 @@ this._msal.getStreamingTokens().then((streamingTokens) => {
     console.error(err)
 })
 ```
+
+### Supplying additional headers with the request
+
+The MSAL class supports additional headers to be send with the request. This can be done as following:
+
+```js
+this._msal = new Msal(this._tokenStore)
+
+this._msal.setDefaultHeaders({
+    'Header': 'Value'
+})
+
+this._msal.getStreamingTokens().then((streamingTokens) => {
+    console.log('streamingTokens', streamingTokens)
+}).catch((err) => {
+    console.error(err)
+})
+```

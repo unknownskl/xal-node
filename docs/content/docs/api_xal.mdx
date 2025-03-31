@@ -89,3 +89,21 @@ this._xal.getStreamingTokens().then((streamingTokens) => {
     console.error(err)
 })
 ```
+
+### Supplying additional headers with the request
+
+The XAL class supports additional headers to be send with the request. This can be done as following:
+
+```js
+this._xal = new Xal(this._tokenStore)
+
+this._xal.setDefaultHeaders({
+    'Header': 'Value'
+})
+
+this._xal.getStreamingTokens().then((streamingTokens) => {
+    console.log('streamingTokens', streamingTokens)
+}).catch((err) => {
+    console.error(err)
+})
+```
