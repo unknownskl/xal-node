@@ -36,7 +36,7 @@
   "homepage": "https://github.com/unknownskl/xal-node#readme",
   "dependencies": {
     "commander": "^13.0.0",
-    "jose": "^5.10.0",
+    "jose": "^6.0.11",
     "uuid-1345": "^1.0.2"
   }
 }
