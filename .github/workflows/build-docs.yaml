@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - name: Checkout Git repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5
         with:
           submodules: recursive
       
