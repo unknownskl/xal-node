@@ -15,6 +15,16 @@ interface IDeviceCodeAuth {
     message: string
 }
 
+interface IDeviceCodeVerify {
+    access_token: string
+    expires_in: number
+    ext_expires_in: number
+    id_token: string
+    refresh_token: string
+    scope: string
+    token_type: string
+}
+
 export default class Msal {
 
     private _tokenStore:TokenStore
@@ -54,7 +64,7 @@ export default class Msal {
      * Keeps polling for authentication changes. The promise will be fullfilled once the user has authenticated.
      */
     doPollForDeviceCodeAuth(deviceCode:string, timeout = 900 * 1000, startTime = Date.now()){
-        return new Promise((resolve, reject) => {
+        return new Promise<IDeviceCodeVerify>((resolve, reject) => {
             this._httpClient.postRequest('login.microsoftonline.com', '/consumers/oauth2/v2.0/token', {
                 "Content-Type": "application/x-www-form-urlencoded"
             }, "grant_type=urn:ietf:params:oauth:grant-type:device_code&client_id="+this._clientId+"&device_code="+deviceCode

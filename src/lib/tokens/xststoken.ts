@@ -5,9 +5,9 @@ export interface IXstsToken {
     NotAfter: string
     Token: string
     DisplayClaims: {
-        xui: {
+        xui: Array<{
             uhs: string
-        }
+        }>
     }
 }
 
