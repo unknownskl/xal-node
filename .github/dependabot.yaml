@@ -23,14 +23,6 @@ updates:
     commit-message:
       prefix: "chore(deps)"
     versioning-strategy: increase
-    groups:
-      react:
-        patterns:
-          - "react*"
-          - "@types/react*"
-      fumadocs:
-        patterns:
-          - "fumadocs-*"
 
   # Maintain dependencies for npm in docs folder
   - package-ecosystem: "npm"
@@ -51,3 +43,4 @@ updates:
       fumadocs:
         patterns:
           - "fumadocs-*"
+          - "next"
