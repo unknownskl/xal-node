@@ -40,8 +40,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: |
-            -Dsonar.organization=unknownskl-github \
-            -Dsonar.projectKey=unknownskl_xal-node \
+            -Dsonar.organization=unknownskl-github
+            -Dsonar.projectKey=unknownskl_xal-node
             -Dsonar.sources=./src
         if: matrix.os == 'ubuntu-latest' && github.event_name != 'pull_request'
 
