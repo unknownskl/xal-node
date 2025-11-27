@@ -15,13 +15,13 @@ import TokenStore from './tokenstore'
 const UUID = require('uuid-1345')
 const nextUUID = () => UUID.v3({ namespace: '6ba7b811-9dad-11d1-80b4-00c04fd430c8', name: Date.now().toString() })
 
-interface ICodeChallange {
+export interface ICodeChallange {
     value: string
     method: string
     verifier: string
 }
 
-interface ISisuAuthenticationResponse {
+export interface ISisuAuthenticationResponse {
     MsaOauthRedirect: string
     MsaRequestParameters: {}
     SessionId: string

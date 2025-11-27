@@ -11,7 +11,7 @@ export interface ISisuToken {
     Flow: string
 }
 
-interface ISisuUserToken {
+export interface ISisuUserToken {
     IssueInstant: string
     NotAfter: string
     Token: string
@@ -22,7 +22,7 @@ interface ISisuUserToken {
     }
 }
 
-interface ISisuTitleToken {
+export interface ISisuTitleToken {
     IssueInstant: string
     NotAfter: string
     Token: string

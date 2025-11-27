@@ -6,7 +6,7 @@ import TokenStore from './tokenstore'
 import MsalToken from './lib/tokens/msaltoken'
 import { TokenRefreshError } from './lib'
 
-interface IDeviceCodeAuth {
+export interface IDeviceCodeAuth {
     user_code: string
     device_code: string
     verification_uri: string
@@ -15,7 +15,7 @@ interface IDeviceCodeAuth {
     message: string
 }
 
-interface IDeviceCodeVerify {
+export interface IDeviceCodeVerify {
     access_token: string
     expires_in: number
     ext_expires_in: number
