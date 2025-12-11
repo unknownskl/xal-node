@@ -41,4 +41,4 @@ jobs:
 
     - name: NPM publish package
       if: ${{ !contains(steps.tag_name.outputs.SOURCE_TAG, 'beta') }}
-      run: npm publish
+      run: NODE_AUTH_TOKEN="" npm publish
