@@ -506,7 +506,11 @@ export default class Xal {
             try {
                 this._xcloudToken = await this.getStreamToken(xstsToken, 'xgpuweb')
             } catch(error){
-                this._xcloudToken = await this.getStreamToken(xstsToken, 'xgpuwebf2p')
+                try {
+                    this._xcloudToken = await this.getStreamToken(xstsToken, 'xgpuwebf2p')
+                } catch(err) {
+                    console.log('Failed to get xcloud streaming token, probably a non-supported country. Error:', err)
+                }
             }
         }
 

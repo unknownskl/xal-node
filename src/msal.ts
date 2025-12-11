@@ -305,11 +305,15 @@ export default class Msal {
 
         const _xhomeToken = await this.getStreamToken(gssvToken.data.Token, 'xhome')
 
-        let _xcloudToken:StreamingToken
+        let _xcloudToken:StreamingToken | undefined = undefined
         try {
             _xcloudToken = await this.getStreamToken(gssvToken.data.Token, 'xgpuweb')
         } catch(error){
-            _xcloudToken = await this.getStreamToken(gssvToken.data.Token, 'xgpuwebf2p')
+            try {
+                _xcloudToken = await this.getStreamToken(gssvToken.data.Token, 'xgpuwebf2p')
+            } catch(err) {
+                console.log('Failed to get xcloud streaming token, probably a non-supported country. Error:', err)
+            }
         }
 
         return { xHomeToken: _xhomeToken, xCloudToken: _xcloudToken }
