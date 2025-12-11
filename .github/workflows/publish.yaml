@@ -18,8 +18,11 @@ jobs:
 
     - uses: actions/setup-node@v6
       with:
-        node-version: '22'
+        node-version: '24'
         registry-url: 'https://registry.npmjs.org'
+    
+    - name: Update NPM to latest version
+      run: npm install npm@latest
 
     - name: Get tag name
       id: tag_name
@@ -41,4 +44,4 @@ jobs:
 
     - name: NPM publish package
       if: ${{ !contains(steps.tag_name.outputs.SOURCE_TAG, 'beta') }}
-      run: NODE_AUTH_TOKEN="" npm publish
+      run: npm publish
