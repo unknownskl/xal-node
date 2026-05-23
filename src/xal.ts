@@ -11,10 +11,12 @@ import MsalToken from './lib/tokens/msaltoken'
 import { TokenRefreshError } from './lib'
 
 import TokenStore from './tokenstore'
+import {v3 as uuidv3} from 'uuid'
 
 // const UUID = require('uuid-1345')
-import UUID from 'uuid-1345'
-const nextUUID = () => UUID.v3({ namespace: '6ba7b811-9dad-11d1-80b4-00c04fd430c8', name: Date.now().toString() })
+// const nextUUID = () => UUID.v3({ namespace: '6ba7b811-9dad-11d1-80b4-00c04fd430c8', name: Date.now().toString() })
+
+const nextUUID = () => uuidv3(Date.now().toString(), '6ba7b811-9dad-11d1-80b4-00c04fd430c8')
 
 export interface ICodeChallange {
     value: string
