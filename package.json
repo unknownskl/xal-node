@@ -37,6 +37,6 @@
   "dependencies": {
     "commander": "^15.0.0",
     "jose": "^6.2.3",
-    "uuid": "^14.0.0"
+    "uuid": "^14.0.1"
   }
 }
