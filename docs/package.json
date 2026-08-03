@@ -29,7 +29,7 @@
     "autoprefixer": "^10.5.4",
     "eslint": "^10",
     "eslint-config-next": "^16.2.12",
-    "postcss": "^8.5.18",
+    "postcss": "^8.5.25",
     "tailwindcss": "^4.3.2",
     "typescript": "^5.9.3"
   }
