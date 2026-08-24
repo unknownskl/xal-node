@@ -28,7 +28,7 @@
     "@typescript-eslint/eslint-plugin": "^8.48.1",
     "autoprefixer": "^10.5.4",
     "eslint": "^10",
-    "eslint-config-next": "^16.3.1",
+    "eslint-config-next": "^16.3.2",
     "postcss": "^8.5.26",
     "tailwindcss": "^4.3.2",
     "typescript": "^5.9.3"
